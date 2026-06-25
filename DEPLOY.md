@@ -15,17 +15,13 @@
 ---
 
 ## 1. サーバー初期設定（推奨・最初の1回）
-root でログイン後、デプロイ専用ユーザーを作成し SSH を固める。
+Ubuntu 既定の `ubuntu` ユーザー（sudo 可能・非root）をそのまま作業用に使う。
+新規ユーザー作成は不要。root 常用を避け、SSH を鍵認証で固める。
 
 ```bash
-# デプロイ用ユーザー作成
-adduser deploy
-usermod -aG sudo deploy        # ※RHEL系は: usermod -aG wheel deploy
-
-# 自分のPCの公開鍵を deploy に登録（PC側で ssh-copy-id deploy@<あなたのVPSのIPアドレス> でも可）
-mkdir -p /home/deploy/.ssh && chmod 700 /home/deploy/.ssh
-# /home/deploy/.ssh/authorized_keys に公開鍵を貼る
-chown -R deploy:deploy /home/deploy/.ssh && chmod 600 /home/deploy/.ssh/authorized_keys
+# 自分のPCの公開鍵が ubuntu に未登録なら、PC側から登録
+# （クラウド初期化で登録済みのことが多い）
+#   ssh-copy-id ubuntu@<あなたのVPSのIPアドレス>
 ```
 
 SSH ハードニング（`/etc/ssh/sshd_config`）:
@@ -47,7 +43,7 @@ sudo ufw enable          # 22番許可済みなので y で続行（SSHは切れ
 sudo firewall-cmd --permanent --add-service={ssh,http,https} && sudo firewall-cmd --reload
 ```
 
-以降は `deploy` ユーザーで作業。
+以降は `ubuntu` ユーザーで作業。
 
 ---
 
@@ -94,7 +90,7 @@ sudo ln -s /etc/nginx/sites-available/world-cup-2026 /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default            # 既定サイト無効化（任意）
 
 # nginx が out/ を読めるよう実行権を付与（ホームディレクトリ経由のため）
-chmod o+x /home/deploy
+chmod o+x /home/ubuntu
 
 sudo nginx -t && sudo systemctl reload nginx
 ```
@@ -127,13 +123,13 @@ cd ~/world-cup-2026
 
 > 自動化したい場合は cron で定期 pull も可能（例: 5分毎）。ただし基本は手動推奨。
 > ```
-> */5 * * * * /home/deploy/world-cup-2026/deploy.sh >> /home/deploy/deploy.log 2>&1
+> */5 * * * * /home/ubuntu/world-cup-2026/deploy.sh >> /home/ubuntu/deploy.log 2>&1
 > ```
 
 ---
 
 ## トラブルシュート
-- **403 Forbidden**: nginx が `out/` を読めない → `chmod o+x /home/deploy` を確認。
+- **403 Forbidden**: nginx が `out/` を読めない → `chmod o+x /home/ubuntu` を確認。
 - **ビルドが OOM で落ちる**: スワップ追加（手順2のメモ）。
 - **ページは出るが崩れる**: `_next/` が配信できているか（root パス）を確認。
 - **証明書取得失敗**: DNS が VPS の IP を指しているか、80番が開いているか確認。
