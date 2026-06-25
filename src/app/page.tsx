@@ -81,10 +81,15 @@ export default function Home() {
     <main className="relative z-10 mx-auto w-full max-w-[1900px] px-2 py-4 sm:px-4 sm:py-6">
       {/* ヘッダー: モバイルは縦積み中央寄せ / xl以上で「左=サブタイトル・中央=タイトル・右=言語」の1行 */}
       <header className="mb-6 grid grid-cols-1 items-center gap-3 xl:grid-cols-[1fr_auto_1fr] xl:gap-4">
-        {/* サブタイトル */}
-        <p className="justify-self-center whitespace-nowrap text-xs tracking-[0.3em] text-white/60 xl:justify-self-start">
-          {t.subtitle}
-        </p>
+        {/* サブタイトル + ドラッグ予測ヒント（右に併記） */}
+        <div className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-0.5 justify-self-center xl:justify-self-start">
+          <p className="whitespace-nowrap text-xs tracking-[0.3em] text-white/60">
+            {t.subtitle}
+          </p>
+          <span className="whitespace-nowrap text-[10px] text-white/35">
+            {t.dragHint}
+          </span>
+        </div>
 
         {/* タイトル + 非公式バッジ（モバイルは横並び、xlで中央固定＆バッジ絶対配置） */}
         <div className="relative flex flex-wrap items-center justify-center gap-2 justify-self-center">
@@ -134,8 +139,8 @@ export default function Home() {
       </header>
 
       {/* 予測モードのバナー（並べ替え中のみ表示） */}
-      <div className="mb-4 flex items-center justify-center gap-3 text-[11px]">
-        {isPredicting ? (
+      {isPredicting && (
+        <div className="mb-4 flex items-center justify-center text-[11px]">
           <div className="flex items-center gap-3 rounded-full border border-amber-300/40 bg-amber-400/15 px-3 py-1 text-amber-200">
             <span className="font-semibold">⚠ {t.predictMode}</span>
             <button
@@ -145,10 +150,8 @@ export default function Home() {
               ↺ {t.resetReal}
             </button>
           </div>
-        ) : (
-          <span className="text-white/35">{t.dragHint}</span>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* 3カラム: 左(A–F) / 中央トーナメント / 右(G–L) */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[280px_1fr_280px]">
