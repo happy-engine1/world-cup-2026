@@ -30,6 +30,10 @@ export interface UIStrings {
   colGd: string;
   colTcs: string;
   colPts: string;
+  colGroup: string;
+  // 3位チーム順位
+  thirdsTitle: string;
+  thirdsNote: string;
   // ブラケット
   champion: string;
   finalBox: string;
@@ -73,6 +77,9 @@ export const UI: Record<Lang, UIStrings> = {
     colGd: "得失",
     colTcs: "TCS",
     colPts: "勝点",
+    colGroup: "組",
+    thirdsTitle: "3位チーム順位",
+    thirdsNote: "上位8チームがベスト32進出",
     champion: "優勝",
     finalBox: "決勝",
     winnerVs: "勝者 vs 勝者",
@@ -114,6 +121,9 @@ export const UI: Record<Lang, UIStrings> = {
     colGd: "GD",
     colTcs: "TCS",
     colPts: "Pts",
+    colGroup: "Grp",
+    thirdsTitle: "Third-placed teams",
+    thirdsNote: "Top 8 advance to the Round of 32",
     champion: "CHAMPION",
     finalBox: "Final",
     winnerVs: "Winner vs Winner",
@@ -155,6 +165,9 @@ export const UI: Record<Lang, UIStrings> = {
     colGd: "净",
     colTcs: "TCS",
     colPts: "积分",
+    colGroup: "组",
+    thirdsTitle: "各组第3名排名",
+    thirdsNote: "前8名晋级32强",
     champion: "冠军",
     finalBox: "决赛",
     winnerVs: "胜者 vs 胜者",
@@ -196,6 +209,9 @@ export const UI: Record<Lang, UIStrings> = {
     colGd: "득실",
     colTcs: "TCS",
     colPts: "승점",
+    colGroup: "조",
+    thirdsTitle: "3위 팀 순위",
+    thirdsNote: "상위 8개 팀이 32강 진출",
     champion: "우승",
     finalBox: "결승",
     winnerVs: "승자 vs 승자",

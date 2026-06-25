@@ -6,11 +6,10 @@
 
 import {
   FINAL_GROUPS,
-  GROUP_LETTERS,
   GroupLetter,
   TeamRow,
-  gd,
   rankGroup,
+  rankedThirds,
 } from "./groups";
 
 export interface SeedSlot {
@@ -52,19 +51,9 @@ const LEAVES: Leaf[] = [
   rk("1", "K"), th("D", "E", "I", "J", "L"), // M15: K1 vs 3rd
 ];
 
-// 各グループ3位を成績順（勝点→得失差→得点→TCS）に並べ、上位8グループを抽出
+// 各グループ3位の順位（共通ロジック）から上位8グループを抽出
 function bestThirdGroups(): GroupLetter[] {
-  return GROUP_LETTERS.map((g) => ({ g, team: rankGroup(g)[2] }))
-    .sort(
-      (a, b) =>
-        b.team.pts - a.team.pts ||
-        gd(b.team) - gd(a.team) ||
-        b.team.gf - a.team.gf ||
-        b.team.tcs - a.team.tcs ||
-        a.g.localeCompare(b.g)
-    )
-    .slice(0, 8)
-    .map((x) => x.g);
+  return rankedThirds().slice(0, 8).map((x) => x.group);
 }
 
 // 8つの3位通過枠に、上位8グループを「各枠の許容グループ集合」を満たすよう割当（二部マッチング）

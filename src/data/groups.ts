@@ -223,3 +223,22 @@ export function teamName(code: string, lang: Lang): string {
   if (lang === "ja") return teamByCode[code]?.nameJa ?? code;
   return TEAM_NAMES_INTL[code]?.[lang] ?? teamByCode[code]?.nameJa ?? code;
 }
+
+export interface RankedThird {
+  group: GroupLetter;
+  team: TeamRow;
+}
+
+// 各グループ3位を「3位同士の比較ルール」で並べる:
+//   勝点 → 得失点差 → 総得点 → フェアプレー(TCS) → （最後は組記号で安定化）
+// ※3位同士は別グループのため直接対決が無く、当該チーム間比較のステップは省かれる。
+export function rankedThirds(): RankedThird[] {
+  return GROUP_LETTERS.map((g) => ({ group: g, team: rankGroup(g)[2] })).sort(
+    (a, b) =>
+      b.team.pts - a.team.pts ||
+      gd(b.team) - gd(a.team) ||
+      b.team.gf - a.team.gf ||
+      b.team.tcs - a.team.tcs ||
+      a.group.localeCompare(b.group)
+  );
+}

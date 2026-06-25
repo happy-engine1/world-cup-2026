@@ -7,6 +7,7 @@ import { useI18n } from "@/i18n/I18nProvider";
 import { LANGS } from "@/i18n/config";
 import GroupTable from "@/components/GroupTable";
 import Bracket from "@/components/Bracket";
+import ThirdPlaceTable from "@/components/ThirdPlaceTable";
 
 const LEFT_GROUPS = GROUP_LETTERS.slice(0, 6); // A–F
 const RIGHT_GROUPS = GROUP_LETTERS.slice(6); // G–L
@@ -118,6 +119,15 @@ export default function Home() {
             </div>
           </div>
           <p className="mt-2 text-center text-[10px] text-white/40">{t.legend}</p>
+
+          {/* 幅が足りる場合: 3位チーム表をトーナメントの下に */}
+          <div className="mt-4 hidden xl:block">
+            <ThirdPlaceTable
+              selected={selected}
+              opponents={highlight.opponents}
+              onSelectTeam={selectTeam}
+            />
+          </div>
         </section>
 
         {/* 右サイド: グループ G–L（モバイルでは3番目） */}
@@ -137,6 +147,15 @@ export default function Home() {
             />
           ))}
         </section>
+      </div>
+
+      {/* 幅が足りない場合: 3位チーム表を A–L の下（最後）に */}
+      <div className="mt-4 xl:hidden">
+        <ThirdPlaceTable
+          selected={selected}
+          opponents={highlight.opponents}
+          onSelectTeam={selectTeam}
+        />
       </div>
 
       {/* フッター: 非公式ディスクレーマー */}
