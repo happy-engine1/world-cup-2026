@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  SEEDS,
   SeedSlot,
   Highlight,
   MATCH_DATES,
@@ -13,6 +12,7 @@ import { seedLabel } from "@/i18n/ui";
 import Flag from "./Flag";
 
 interface BracketProps {
+  seeds: SeedSlot[];
   highlight: Highlight;
   onSelectTeam: (code: string) => void;
 }
@@ -109,12 +109,14 @@ function SeedLine({
 
 // ベスト32（実チームが入る試合）のカラム
 function R32Column({
+  seeds,
   matches,
   highlight,
   onSelectTeam,
   side,
   label,
 }: {
+  seeds: SeedSlot[];
   matches: number[];
   highlight: Highlight;
   onSelectTeam: (code: string) => void;
@@ -139,9 +141,9 @@ function R32Column({
                 <div className="border-b border-white/10 bg-black/25 px-1 text-center text-[8px] tracking-wide text-white/45">
                   {MATCH_DATES[`0-${m}`]}
                 </div>
-                <SeedLine slot={SEEDS[m * 2]} highlight={highlight} onSelectTeam={onSelectTeam} side={side} />
+                <SeedLine slot={seeds[m * 2]} highlight={highlight} onSelectTeam={onSelectTeam} side={side} />
                 <div className="border-t border-white/10" />
-                <SeedLine slot={SEEDS[m * 2 + 1]} highlight={highlight} onSelectTeam={onSelectTeam} side={side} />
+                <SeedLine slot={seeds[m * 2 + 1]} highlight={highlight} onSelectTeam={onSelectTeam} side={side} />
               </div>
             </Slot>
           );
@@ -251,7 +253,7 @@ function StraightColumn({ on }: { on: boolean }) {
   );
 }
 
-export default function Bracket({ highlight, onSelectTeam }: BracketProps) {
+export default function Bracket({ seeds, highlight, onSelectTeam }: BracketProps) {
   const { t } = useI18n();
   const finalOnRoute = highlight.routeMatches.has("4-0");
   const sfLeftOnRoute = highlight.routeMatches.has("3-0");
@@ -263,7 +265,7 @@ export default function Bracket({ highlight, onSelectTeam }: BracketProps) {
   return (
     <div className="mx-auto flex h-full w-max items-stretch">
       {/* ===== 左半分: R32 → R16 → QF → SF ===== */}
-      <R32Column matches={[0, 1, 2, 3, 4, 5, 6, 7]} highlight={highlight} onSelectTeam={onSelectTeam} side="left" label={R[0]} />
+      <R32Column seeds={seeds} matches={[0, 1, 2, 3, 4, 5, 6, 7]} highlight={highlight} onSelectTeam={onSelectTeam} side="left" label={R[0]} />
       <ElbowColumn parentRound={1} parents={[0, 1, 2, 3]} highlight={highlight} side="left" />
       <RoundColumn round={1} matches={[0, 1, 2, 3]} highlight={highlight} label={R[1]} />
       <ElbowColumn parentRound={2} parents={[0, 1]} highlight={highlight} side="left" />
@@ -315,7 +317,7 @@ export default function Bracket({ highlight, onSelectTeam }: BracketProps) {
       <ElbowColumn parentRound={2} parents={[2, 3]} highlight={highlight} side="right" />
       <RoundColumn round={1} matches={[4, 5, 6, 7]} highlight={highlight} label={R[1]} />
       <ElbowColumn parentRound={1} parents={[4, 5, 6, 7]} highlight={highlight} side="right" />
-      <R32Column matches={[8, 9, 10, 11, 12, 13, 14, 15]} highlight={highlight} onSelectTeam={onSelectTeam} side="right" label={R[0]} />
+      <R32Column seeds={seeds} matches={[8, 9, 10, 11, 12, 13, 14, 15]} highlight={highlight} onSelectTeam={onSelectTeam} side="right" label={R[0]} />
     </div>
   );
 }

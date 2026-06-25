@@ -1,12 +1,21 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { GroupLetter, FINAL_GROUPS, gd, rankGroup, teamName, TeamRow } from "@/data/groups";
+import {
+  AnimatePresence,
+  motion,
+  Reorder,
+  useDragControls,
+} from "framer-motion";
+import { GroupLetter, FINAL_GROUPS, gd, teamName, TeamRow } from "@/data/groups";
 import { useI18n } from "@/i18n/I18nProvider";
+import { Lang } from "@/i18n/config";
 import Flag from "./Flag";
 
 interface GroupTableProps {
   group: GroupLetter;
+  order: TeamRow[]; // 表示順（予測時はユーザー指定、既定は実順位）
+  reorderable: boolean;
+  onReorder: (g: GroupLetter, codes: string[]) => void;
   expanded: boolean;
   onToggle: (g: GroupLetter) => void;
   selected: string | null;
@@ -18,8 +27,85 @@ interface GroupTableProps {
 const rankBar = (rank: number) =>
   rank <= 2 ? "bg-amber-400" : rank === 3 ? "bg-cyan-400/70" : "bg-slate-600/40";
 
+// コンパクト行の中身（順位バー / 国旗 / 国名 / 勝点）
+function RowInner({
+  row,
+  idx,
+  selected,
+  lang,
+}: {
+  row: TeamRow;
+  idx: number;
+  selected: string | null;
+  lang: Lang;
+}) {
+  return (
+    <>
+      <div className="relative w-6 shrink-0 py-1.5 text-center text-white/60">
+        <span className={`absolute left-0 top-0 h-full w-1 ${rankBar(idx + 1)}`} />
+        {idx + 1}
+      </div>
+      <div className="shrink-0 py-1.5 pl-1">
+        <Flag code={row.flag} alt={teamName(row.code, lang)} size={22} />
+      </div>
+      <div
+        className={`min-w-0 flex-1 truncate py-1.5 pl-1 pr-2 ${
+          selected === row.code ? "font-bold text-amber-100" : "text-white/90"
+        }`}
+      >
+        {teamName(row.code, lang)}
+      </div>
+      <div className="shrink-0 px-2 py-1.5 text-right text-base font-bold text-amber-300">
+        {row.pts}
+      </div>
+    </>
+  );
+}
+
+// ドラッグ可能な1行（framer-motion Reorder + ハンドル）
+function DraggableRow({
+  row,
+  idx,
+  rowClass,
+  selected,
+  lang,
+  onSelectTeam,
+}: {
+  row: TeamRow;
+  idx: number;
+  rowClass: string;
+  selected: string | null;
+  lang: Lang;
+  onSelectTeam: (code: string) => void;
+}) {
+  const controls = useDragControls();
+  return (
+    <Reorder.Item
+      as="div"
+      value={row.code}
+      dragListener={false}
+      dragControls={controls}
+      onClick={() => onSelectTeam(row.code)}
+      className={`flex cursor-pointer items-center border-t border-white/5 bg-white/[0.01] text-xs transition-colors ${rowClass}`}
+    >
+      <span
+        onPointerDown={(e) => controls.start(e)}
+        onClick={(e) => e.stopPropagation()}
+        className="shrink-0 cursor-grab touch-none select-none px-1 text-white/30 active:cursor-grabbing"
+        aria-label="drag"
+      >
+        ⠿
+      </span>
+      <RowInner row={row} idx={idx} selected={selected} lang={lang} />
+    </Reorder.Item>
+  );
+}
+
 export default function GroupTable({
   group,
+  order,
+  reorderable,
+  onReorder,
   expanded,
   onToggle,
   selected,
@@ -27,7 +113,6 @@ export default function GroupTable({
   onSelectTeam,
 }: GroupTableProps) {
   const { lang, t } = useI18n();
-  const rows = rankGroup(group);
   const isFinal = FINAL_GROUPS.has(group);
 
   const rowClass = (row: TeamRow) => {
@@ -39,6 +124,11 @@ export default function GroupTable({
       ? "bg-cyan-400/10"
       : "hover:bg-white/[0.05]";
   };
+
+  const codes = order.map((r) => r.code);
+  const byCode: Record<string, TeamRow> = Object.fromEntries(
+    order.map((r) => [r.code, r])
+  );
 
   return (
     <div className="rounded-lg border border-white/10 bg-white/[0.04] backdrop-blur-sm overflow-hidden">
@@ -71,36 +161,41 @@ export default function GroupTable({
         </span>
       </button>
 
-      {/* 折りたたみ時の概要テーブル: 順位 / 国旗 / 国名 / 勝点 */}
-      <table className="w-full border-collapse text-xs">
-        <tbody>
-          {rows.map((row, idx) => (
-            <tr
+      {/* 折りたたみ時の概要: 順位 / 国旗 / 国名 / 勝点。reorderable はドラッグ並べ替え可 */}
+      {reorderable ? (
+        <Reorder.Group
+          as="div"
+          axis="y"
+          values={codes}
+          onReorder={(c) => onReorder(group, c as string[])}
+        >
+          {codes.map((code, idx) => (
+            <DraggableRow
+              key={code}
+              row={byCode[code]}
+              idx={idx}
+              rowClass={rowClass(byCode[code])}
+              selected={selected}
+              lang={lang}
+              onSelectTeam={onSelectTeam}
+            />
+          ))}
+        </Reorder.Group>
+      ) : (
+        <div>
+          {order.map((row, idx) => (
+            <div
               key={row.code}
               onClick={() => onSelectTeam(row.code)}
-              className={`cursor-pointer border-t border-white/5 transition-colors ${rowClass(row)}`}
+              className={`flex cursor-pointer items-center border-t border-white/5 text-xs transition-colors ${rowClass(row)}`}
             >
-              <td className="relative w-6 py-1.5 text-center text-white/60">
-                <span className={`absolute left-0 top-0 h-full w-1 ${rankBar(idx + 1)}`} />
-                {idx + 1}
-              </td>
-              <td className="w-7 py-1.5 pl-1">
-                <Flag code={row.flag} alt={teamName(row.code, lang)} size={22} />
-              </td>
-              <td
-                className={`py-1.5 pl-1 pr-2 whitespace-nowrap ${
-                  selected === row.code ? "font-bold text-amber-100" : "text-white/90"
-                }`}
-              >
-                {teamName(row.code, lang)}
-              </td>
-              <td className="px-2 py-1.5 text-right text-base font-bold text-amber-300">
-                {row.pts}
-              </td>
-            </tr>
+              {/* ハンドル列のぶん左に余白（ドラッグ可グループと行頭を揃える） */}
+              <span className="w-[18px] shrink-0" />
+              <RowInner row={row} idx={idx} selected={selected} lang={lang} />
+            </div>
           ))}
-        </tbody>
-      </table>
+        </div>
+      )}
 
       {/* 展開時の詳細テーブル（アニメーション付きで開閉） */}
       <AnimatePresence initial={false}>
@@ -134,7 +229,7 @@ export default function GroupTable({
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((row, idx) => (
+                  {order.map((row, idx) => (
                     <tr
                       key={row.code}
                       onClick={() => onSelectTeam(row.code)}

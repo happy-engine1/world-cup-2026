@@ -34,6 +34,10 @@ export interface UIStrings {
   // 3位チーム順位
   thirdsTitle: string;
   thirdsNote: string;
+  // 予測モード
+  predictMode: string;
+  resetReal: string;
+  dragHint: string;
   // ブラケット
   champion: string;
   finalBox: string;
@@ -80,6 +84,9 @@ export const UI: Record<Lang, UIStrings> = {
     colGroup: "組",
     thirdsTitle: "3位チーム順位",
     thirdsNote: "上位8チームがベスト32進出",
+    predictMode: "予測モード（実データではありません）",
+    resetReal: "実データに戻す",
+    dragHint: "ドラッグで順位を予測できます",
     champion: "優勝",
     finalBox: "決勝",
     winnerVs: "勝者 vs 勝者",
@@ -124,6 +131,9 @@ export const UI: Record<Lang, UIStrings> = {
     colGroup: "Grp",
     thirdsTitle: "Third-placed teams",
     thirdsNote: "Top 8 advance to the Round of 32",
+    predictMode: "Prediction mode (not actual data)",
+    resetReal: "Reset to actual",
+    dragHint: "Drag to predict the standings",
     champion: "CHAMPION",
     finalBox: "Final",
     winnerVs: "Winner vs Winner",
@@ -168,6 +178,9 @@ export const UI: Record<Lang, UIStrings> = {
     colGroup: "组",
     thirdsTitle: "各组第3名排名",
     thirdsNote: "前8名晋级32强",
+    predictMode: "预测模式（非真实数据）",
+    resetReal: "重置为真实数据",
+    dragHint: "拖动可预测排名",
     champion: "冠军",
     finalBox: "决赛",
     winnerVs: "胜者 vs 胜者",
@@ -212,6 +225,9 @@ export const UI: Record<Lang, UIStrings> = {
     colGroup: "조",
     thirdsTitle: "3위 팀 순위",
     thirdsNote: "상위 8개 팀이 32강 진출",
+    predictMode: "예측 모드 (실제 데이터 아님)",
+    resetReal: "실제 데이터로 초기화",
+    dragHint: "드래그하여 순위를 예측할 수 있습니다",
     champion: "우승",
     finalBox: "결승",
     winnerVs: "승자 vs 승자",

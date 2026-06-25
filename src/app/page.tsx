@@ -1,8 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { GROUP_LETTERS, GroupLetter, teamByCode, teamName } from "@/data/groups";
-import { getHighlight } from "@/data/bracket";
+import { useCallback, useMemo, useState } from "react";
+import {
+  FINAL_GROUPS,
+  GROUP_LETTERS,
+  GroupLetter,
+  rankGroup,
+  rankThirdsBy,
+  teamByCode,
+  teamName,
+  TeamRow,
+} from "@/data/groups";
+import { computeSeeds, getHighlight } from "@/data/bracket";
 import { useI18n } from "@/i18n/I18nProvider";
 import { LANGS } from "@/i18n/config";
 import GroupTable from "@/components/GroupTable";
@@ -17,7 +26,35 @@ export default function Home() {
   const [selected, setSelected] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Set<GroupLetter>>(new Set());
 
-  const highlight = useMemo(() => getHighlight(selected), [selected]);
+  // 予測: グループ内順位の上書き（組→コード配列）と、3位ランキングの手動並び
+  const [predictions, setPredictions] = useState<Partial<Record<GroupLetter, string[]>>>({});
+  const [thirdOrder, setThirdOrder] = useState<GroupLetter[] | null>(null);
+  const isPredicting = Object.keys(predictions).length > 0 || thirdOrder !== null;
+
+  // 各グループの現在の表示順（予測があればそれ、無ければ実順位）
+  const groupOrder = useCallback(
+    (g: GroupLetter): TeamRow[] => {
+      const codes = predictions[g];
+      if (codes) return codes.map((c) => teamByCode[c]);
+      return rankGroup(g);
+    },
+    [predictions]
+  );
+
+  // 3位ランキング（手動 thirdOrder があればそれ、無ければ現順位から自動算出）
+  const thirds = useMemo(() => {
+    if (thirdOrder) {
+      return thirdOrder.map((g) => ({ group: g, team: groupOrder(g)[2] }));
+    }
+    return rankThirdsBy(groupOrder);
+  }, [thirdOrder, groupOrder]);
+
+  const seeds = useMemo(
+    () => computeSeeds(groupOrder, thirds.slice(0, 8).map((x) => x.group)),
+    [groupOrder, thirds]
+  );
+
+  const highlight = useMemo(() => getHighlight(selected, seeds), [selected, seeds]);
 
   const toggleGroup = (g: GroupLetter) =>
     setExpanded((prev) => {
@@ -29,6 +66,14 @@ export default function Home() {
 
   const selectTeam = (code: string) =>
     setSelected((prev) => (prev === code ? null : code));
+
+  const reorderGroup = (g: GroupLetter, codes: string[]) =>
+    setPredictions((p) => ({ ...p, [g]: codes }));
+
+  const resetPredictions = () => {
+    setPredictions({});
+    setThirdOrder(null);
+  };
 
   const selectedTeam = selected ? teamByCode[selected] : null;
 
@@ -88,6 +133,23 @@ export default function Home() {
         </div>
       </header>
 
+      {/* 予測モードのバナー（並べ替え中のみ表示） */}
+      <div className="mb-4 flex items-center justify-center gap-3 text-[11px]">
+        {isPredicting ? (
+          <div className="flex items-center gap-3 rounded-full border border-amber-300/40 bg-amber-400/15 px-3 py-1 text-amber-200">
+            <span className="font-semibold">⚠ {t.predictMode}</span>
+            <button
+              onClick={resetPredictions}
+              className="rounded-full bg-white/15 px-2.5 py-0.5 font-medium text-white/80 hover:bg-white/25"
+            >
+              ↺ {t.resetReal}
+            </button>
+          </div>
+        ) : (
+          <span className="text-white/35">{t.dragHint}</span>
+        )}
+      </div>
+
       {/* 3カラム: 左(A–F) / 中央トーナメント / 右(G–L) */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[280px_1fr_280px]">
         {/* 左サイド: グループ A–F（モバイルでは2番目） */}
@@ -99,6 +161,9 @@ export default function Home() {
             <GroupTable
               key={g}
               group={g}
+              order={groupOrder(g)}
+              reorderable={!FINAL_GROUPS.has(g)}
+              onReorder={reorderGroup}
               expanded={expanded.has(g)}
               onToggle={toggleGroup}
               selected={selected}
@@ -115,7 +180,7 @@ export default function Home() {
           </h2>
           <div className="overflow-x-auto rounded-xl border border-white/10 bg-black/20 p-3">
             <div className="h-[920px]">
-              <Bracket highlight={highlight} onSelectTeam={selectTeam} />
+              <Bracket seeds={seeds} highlight={highlight} onSelectTeam={selectTeam} />
             </div>
           </div>
           <p className="mt-2 text-center text-[10px] text-white/40">{t.legend}</p>
@@ -123,6 +188,8 @@ export default function Home() {
           {/* 幅が足りる場合: 3位チーム表をトーナメントの下に */}
           <div className="mt-4 hidden xl:block">
             <ThirdPlaceTable
+              thirds={thirds}
+              onReorder={setThirdOrder}
               selected={selected}
               opponents={highlight.opponents}
               onSelectTeam={selectTeam}
@@ -139,6 +206,9 @@ export default function Home() {
             <GroupTable
               key={g}
               group={g}
+              order={groupOrder(g)}
+              reorderable={!FINAL_GROUPS.has(g)}
+              onReorder={reorderGroup}
               expanded={expanded.has(g)}
               onToggle={toggleGroup}
               selected={selected}
@@ -152,6 +222,8 @@ export default function Home() {
       {/* 幅が足りない場合: 3位チーム表を A–L の下（最後）に */}
       <div className="mt-4 xl:hidden">
         <ThirdPlaceTable
+          thirds={thirds}
+          onReorder={setThirdOrder}
           selected={selected}
           opponents={highlight.opponents}
           onSelectTeam={selectTeam}

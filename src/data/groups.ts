@@ -232,8 +232,11 @@ export interface RankedThird {
 // 各グループ3位を「3位同士の比較ルール」で並べる:
 //   勝点 → 得失点差 → 総得点 → フェアプレー(TCS) → （最後は組記号で安定化）
 // ※3位同士は別グループのため直接対決が無く、当該チーム間比較のステップは省かれる。
-export function rankedThirds(): RankedThird[] {
-  return GROUP_LETTERS.map((g) => ({ group: g, team: rankGroup(g)[2] })).sort(
+// orderOf: 各グループの並び順を返す関数（予測時はユーザー指定順、既定は rankGroup）。
+export function rankThirdsBy(
+  orderOf: (g: GroupLetter) => TeamRow[]
+): RankedThird[] {
+  return GROUP_LETTERS.map((g) => ({ group: g, team: orderOf(g)[2] })).sort(
     (a, b) =>
       b.team.pts - a.team.pts ||
       gd(b.team) - gd(a.team) ||
@@ -241,4 +244,9 @@ export function rankedThirds(): RankedThird[] {
       b.team.tcs - a.team.tcs ||
       a.group.localeCompare(b.group)
   );
+}
+
+// 既定（実データ順）の3位ランキング
+export function rankedThirds(): RankedThird[] {
+  return rankThirdsBy(rankGroup);
 }

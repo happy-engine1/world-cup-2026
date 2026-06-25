@@ -4,13 +4,7 @@
 // 各リーフは groups の現順位から解決される。グループ1/2位は確定グループなら confirmed、
 // それ以外（未確定グループの1/2位・全ての3位通過枠）は tentative（薄色表示）。
 
-import {
-  FINAL_GROUPS,
-  GroupLetter,
-  TeamRow,
-  rankGroup,
-  rankedThirds,
-} from "./groups";
+import { FINAL_GROUPS, GroupLetter, TeamRow } from "./groups";
 
 export interface SeedSlot {
   index: number; // 0..31 ブラケット順
@@ -51,14 +45,8 @@ const LEAVES: Leaf[] = [
   rk("1", "K"), th("D", "E", "I", "J", "L"), // M15: K1 vs 3rd
 ];
 
-// 各グループ3位の順位（共通ロジック）から上位8グループを抽出
-function bestThirdGroups(): GroupLetter[] {
-  return rankedThirds().slice(0, 8).map((x) => x.group);
-}
-
-// 8つの3位通過枠に、上位8グループを「各枠の許容グループ集合」を満たすよう割当（二部マッチング）
-function assignThirds(): Record<number, GroupLetter> {
-  const qualifying = bestThirdGroups();
+// 8つの3位通過枠に、上位8グループ（qualifying）を「各枠の許容集合」を満たすよう割当（二部マッチング）
+function assignThirds(qualifying: GroupLetter[]): Record<number, GroupLetter> {
   const slots = LEAVES.map((l, i) =>
     l.kind === "third" ? { i, allowed: l.allowed } : null
   ).filter((s): s is { i: number; allowed: GroupLetter[] } => s !== null);
@@ -89,8 +77,14 @@ function assignThirds(): Record<number, GroupLetter> {
   return result;
 }
 
-export const SEEDS: SeedSlot[] = (() => {
-  const thirdAssign = assignThirds();
+// 現在のグループ順序と「3位通過の上位8グループ（順序付き）」からブラケットのシードを構築。
+//   orderOf(g): 各グループの順位順 TeamRow[]（予測時はユーザー指定、既定は rankGroup）
+//   qualifyingThirds: 3位ランキング上位8グループ
+export function computeSeeds(
+  orderOf: (g: GroupLetter) => TeamRow[],
+  qualifyingThirds: GroupLetter[]
+): SeedSlot[] {
+  const thirdAssign = assignThirds(qualifyingThirds);
   return LEAVES.map((leaf, i): SeedSlot => {
     if (leaf.kind === "third") {
       const g = thirdAssign[i] ?? leaf.allowed[0]; // フォールバック
@@ -99,11 +93,11 @@ export const SEEDS: SeedSlot[] = (() => {
         seedType: "third",
         group: g,
         allowed: leaf.allowed,
-        team: rankGroup(g)[2],
+        team: orderOf(g)[2],
         confirmed: false,
       };
     }
-    const team = rankGroup(leaf.group)[leaf.pos === "1" ? 0 : 1];
+    const team = orderOf(leaf.group)[leaf.pos === "1" ? 0 : 1];
     return {
       index: i,
       seedType: leaf.pos,
@@ -112,7 +106,7 @@ export const SEEDS: SeedSlot[] = (() => {
       confirmed: FINAL_GROUPS.has(leaf.group),
     };
   });
-})();
+}
 
 export const ROUND_NAMES = ["ベスト32", "ベスト16", "準々決勝", "準決勝", "決勝"];
 export const TOTAL_ROUNDS = 5; // 0..4
@@ -161,10 +155,13 @@ export const EMPTY_HIGHLIGHT: Highlight = {
   opponents: new Set(),
 };
 
-// 選択チームの「勝ち上がりルート」と「対戦しうる全チーム」を算出
-export function getHighlight(teamCode: string | null): Highlight {
+// 選択チームの「勝ち上がりルート」と「対戦しうる全チーム」を算出（現在の seeds に対して）
+export function getHighlight(
+  teamCode: string | null,
+  seeds: SeedSlot[]
+): Highlight {
   if (!teamCode) return EMPTY_HIGHLIGHT;
-  const leaf = SEEDS.find((s) => s.team.code === teamCode);
+  const leaf = seeds.find((s) => s.team.code === teamCode);
   if (!leaf) return EMPTY_HIGHLIGHT;
 
   const i = leaf.index;
@@ -182,7 +179,7 @@ export function getHighlight(teamCode: string | null): Highlight {
     const mySide = i - blockStart < half ? 0 : 1;
     const oppStart = mySide === 0 ? blockStart + half : blockStart;
     for (let j = oppStart; j < oppStart + half; j++) {
-      if (SEEDS[j].team.code !== teamCode) opponents.add(SEEDS[j].team.code);
+      if (seeds[j].team.code !== teamCode) opponents.add(seeds[j].team.code);
     }
   }
 
