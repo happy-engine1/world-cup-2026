@@ -3,16 +3,16 @@ import "./globals.css";
 import { I18nProvider } from "@/i18n/I18nProvider";
 
 export const metadata: Metadata = {
-  title: "ワールドカップ2026 対戦トーナメント表（非公式・ファンメイド）",
+  title: "World Cup 2026 Bracket (Unofficial · Fan-made)",
   description:
-    "2026年 北中米サッカー大会の対戦トーナメント表とグループ順位をまとめたファン制作の非公式サイト。大会主催者とは関係ありません。",
+    "Unofficial fan-made site with the 2026 Canada/Mexico/USA World Cup knockout bracket and group standings. Not affiliated with the tournament organizers.",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ja">
+    <html lang="en">
       <body>
         <I18nProvider>{children}</I18nProvider>
       </body>

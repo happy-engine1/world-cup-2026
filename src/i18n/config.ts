@@ -8,5 +8,5 @@ export const LANGS: { code: Lang; label: string }[] = [
   { code: "ko", label: "한국어" },
 ];
 
-export const DEFAULT_LANG: Lang = "ja";
+export const DEFAULT_LANG: Lang = "en";
 export const STORAGE_KEY = "wc2026-lang";
