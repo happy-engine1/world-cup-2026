@@ -1,0 +1,225 @@
+// FIFA World Cup 2026 — 48カ国 / 12グループのチーム情報とグループ戦の想定成績（固定データ）。
+// flag は flagcdn.com のコード（ISO 3166-1 alpha-2、英国構成国は gb-eng / gb-sct を使用）。
+
+import type { Lang } from "@/i18n/config";
+
+export type GroupLetter =
+  | "A" | "B" | "C" | "D" | "E" | "F"
+  | "G" | "H" | "I" | "J" | "K" | "L";
+
+export interface TeamRow {
+  code: string; // 一意なチームコード（flagcdn コードと同一）
+  nameJa: string;
+  flag: string; // flagcdn コード
+  group: GroupLetter;
+  played: number;
+  win: number;
+  draw: number;
+  loss: number;
+  gf: number; // 得点
+  ga: number; // 失点
+  tcs: number; // フェアプレーポイント（0 が最良、マイナスほど警告/退場が多い）
+  pts: number; // 勝点
+}
+
+// グループ戦が全試合（3試合）終了し、順位が確定しているグループ。
+// （2026-06-25 時点の実データ: A・B・C が3試合消化済み、他は2試合）
+export const FINAL_GROUPS = new Set<GroupLetter>(["A", "B", "C"]);
+
+export const GROUP_LETTERS: GroupLetter[] = [
+  "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
+];
+
+type Stat = Omit<TeamRow, "group">;
+
+const r = (
+  code: string,
+  nameJa: string,
+  played: number,
+  win: number,
+  draw: number,
+  loss: number,
+  gf: number,
+  ga: number,
+  tcs: number
+): Stat => ({
+  code,
+  nameJa,
+  flag: code,
+  played,
+  win,
+  draw,
+  loss,
+  gf,
+  ga,
+  tcs,
+  pts: win * 3 + draw,
+});
+
+// 各グループ（順序は任意。表示時に rankGroup でソートする）
+// 実データ出典: 2026 FIFA World Cup（一般公開情報、2026-06 時点のスナップショット）。
+// TCS（フェアプレーポイント）は公開値未取得のため 0。
+const RAW: Record<GroupLetter, Stat[]> = {
+  // --- 確定グループ（3試合終了）: A・B・C ---
+  A: [
+    r("mx", "メキシコ", 3, 3, 0, 0, 6, 0, 0),
+    r("za", "南アフリカ", 3, 1, 1, 1, 2, 3, 0),
+    r("kr", "韓国", 3, 1, 0, 2, 2, 3, 0),
+    r("cz", "チェコ", 3, 0, 1, 2, 2, 6, 0),
+  ],
+  B: [
+    r("ch", "スイス", 3, 2, 1, 0, 7, 3, 0),
+    r("ca", "カナダ", 3, 1, 1, 1, 8, 3, 0),
+    r("ba", "ボスニア・ヘルツェゴビナ", 3, 1, 1, 1, 5, 6, 0),
+    r("qa", "カタール", 3, 0, 1, 2, 2, 10, 0),
+  ],
+  C: [
+    r("br", "ブラジル", 3, 2, 1, 0, 7, 1, 0),
+    r("ma", "モロッコ", 3, 2, 1, 0, 6, 3, 0),
+    r("gb-sct", "スコットランド", 3, 1, 0, 2, 1, 4, 0),
+    r("ht", "ハイチ", 3, 0, 0, 3, 2, 8, 0),
+  ],
+  // --- 途中グループ（2試合終了）---
+  D: [
+    r("us", "アメリカ", 2, 2, 0, 0, 6, 1, 0),
+    r("au", "オーストラリア", 2, 1, 0, 1, 2, 2, 0),
+    r("py", "パラグアイ", 2, 1, 0, 1, 2, 4, 0),
+    r("tr", "トルコ", 2, 0, 0, 2, 0, 3, 0),
+  ],
+  E: [
+    r("de", "ドイツ", 2, 2, 0, 0, 9, 2, 0),
+    r("ci", "コートジボワール", 2, 1, 0, 1, 2, 2, 0),
+    r("ec", "エクアドル", 2, 0, 1, 1, 0, 1, 0),
+    r("cw", "キュラソー", 2, 0, 1, 1, 1, 7, 0),
+  ],
+  F: [
+    r("nl", "オランダ", 2, 1, 1, 0, 7, 3, 0),
+    r("jp", "日本", 2, 1, 1, 0, 6, 2, 0),
+    r("se", "スウェーデン", 2, 1, 0, 1, 6, 6, 0),
+    r("tn", "チュニジア", 2, 0, 0, 2, 1, 9, 0),
+  ],
+  G: [
+    r("eg", "エジプト", 2, 1, 1, 0, 4, 2, 0),
+    r("ir", "イラン", 2, 0, 2, 0, 2, 2, 0),
+    r("be", "ベルギー", 2, 0, 2, 0, 1, 1, 0),
+    r("nz", "ニュージーランド", 2, 0, 1, 1, 3, 5, 0),
+  ],
+  H: [
+    r("es", "スペイン", 2, 1, 1, 0, 4, 0, 0),
+    r("uy", "ウルグアイ", 2, 0, 2, 0, 3, 3, 0),
+    r("cv", "カーボベルデ", 2, 0, 2, 0, 2, 2, 0),
+    r("sa", "サウジアラビア", 2, 0, 1, 1, 1, 5, 0),
+  ],
+  I: [
+    r("fr", "フランス", 2, 2, 0, 0, 6, 1, 0),
+    r("no", "ノルウェー", 2, 2, 0, 0, 7, 3, 0),
+    r("sn", "セネガル", 2, 0, 0, 2, 3, 6, 0),
+    r("iq", "イラク", 2, 0, 0, 2, 1, 7, 0),
+  ],
+  J: [
+    r("ar", "アルゼンチン", 2, 2, 0, 0, 5, 0, 0),
+    r("at", "オーストリア", 2, 1, 0, 1, 3, 3, 0),
+    r("dz", "アルジェリア", 2, 1, 0, 1, 2, 4, 0),
+    r("jo", "ヨルダン", 2, 0, 0, 2, 2, 5, 0),
+  ],
+  K: [
+    r("co", "コロンビア", 2, 2, 0, 0, 4, 1, 0),
+    r("pt", "ポルトガル", 2, 1, 1, 0, 6, 1, 0),
+    r("cd", "コンゴ民主共和国", 2, 0, 1, 1, 1, 2, 0),
+    r("uz", "ウズベキスタン", 2, 0, 0, 2, 1, 8, 0),
+  ],
+  L: [
+    r("gb-eng", "イングランド", 2, 1, 1, 0, 4, 2, 0),
+    r("gh", "ガーナ", 2, 1, 1, 0, 1, 0, 0),
+    r("hr", "クロアチア", 2, 1, 0, 1, 3, 4, 0),
+    r("pa", "パナマ", 2, 0, 0, 2, 0, 2, 0),
+  ],
+};
+
+// group プロパティを付与した完全な行データ
+export const GROUPS: Record<GroupLetter, TeamRow[]> = Object.fromEntries(
+  (Object.keys(RAW) as GroupLetter[]).map((g) => [
+    g,
+    RAW[g].map((s) => ({ ...s, group: g })),
+  ])
+) as Record<GroupLetter, TeamRow[]>;
+
+// 全チームをコードで引く
+export const teamByCode: Record<string, TeamRow> = {};
+for (const g of GROUP_LETTERS) {
+  for (const t of GROUPS[g]) teamByCode[t.code] = t;
+}
+
+export function gd(t: TeamRow): number {
+  return t.gf - t.ga;
+}
+
+// 順位ソート: 勝点 → 得失差 → 得点 → フェアプレー(TCS, 高いほど良) の順
+export function rankGroup(g: GroupLetter): TeamRow[] {
+  return [...GROUPS[g]].sort(
+    (a, b) =>
+      b.pts - a.pts ||
+      gd(b) - gd(a) ||
+      b.gf - a.gf ||
+      b.tcs - a.tcs ||
+      a.code.localeCompare(b.code)
+  );
+}
+
+// 各国名の多言語表記（日本語は TeamRow.nameJa を使用）
+export const TEAM_NAMES_INTL: Record<string, { en: string; zh: string; ko: string }> = {
+  mx: { en: "Mexico", zh: "墨西哥", ko: "멕시코" },
+  za: { en: "South Africa", zh: "南非", ko: "남아프리카공화국" },
+  kr: { en: "South Korea", zh: "韩国", ko: "대한민국" },
+  cz: { en: "Czechia", zh: "捷克", ko: "체코" },
+  ca: { en: "Canada", zh: "加拿大", ko: "캐나다" },
+  qa: { en: "Qatar", zh: "卡塔尔", ko: "카타르" },
+  ch: { en: "Switzerland", zh: "瑞士", ko: "스위스" },
+  ba: { en: "Bosnia & Herzegovina", zh: "波斯尼亚和黑塞哥维那", ko: "보스니아 헤르체고비나" },
+  br: { en: "Brazil", zh: "巴西", ko: "브라질" },
+  ma: { en: "Morocco", zh: "摩洛哥", ko: "모로코" },
+  ht: { en: "Haiti", zh: "海地", ko: "아이티" },
+  "gb-sct": { en: "Scotland", zh: "苏格兰", ko: "스코틀랜드" },
+  us: { en: "United States", zh: "美国", ko: "미국" },
+  py: { en: "Paraguay", zh: "巴拉圭", ko: "파라과이" },
+  au: { en: "Australia", zh: "澳大利亚", ko: "호주" },
+  tr: { en: "Türkiye", zh: "土耳其", ko: "튀르키예" },
+  de: { en: "Germany", zh: "德国", ko: "독일" },
+  cw: { en: "Curaçao", zh: "库拉索", ko: "쿠라사오" },
+  ci: { en: "Côte d'Ivoire", zh: "科特迪瓦", ko: "코트디부아르" },
+  ec: { en: "Ecuador", zh: "厄瓜多尔", ko: "에콰도르" },
+  nl: { en: "Netherlands", zh: "荷兰", ko: "네덜란드" },
+  jp: { en: "Japan", zh: "日本", ko: "일본" },
+  tn: { en: "Tunisia", zh: "突尼斯", ko: "튀니지" },
+  se: { en: "Sweden", zh: "瑞典", ko: "스웨덴" },
+  be: { en: "Belgium", zh: "比利时", ko: "벨기에" },
+  eg: { en: "Egypt", zh: "埃及", ko: "이집트" },
+  ir: { en: "Iran", zh: "伊朗", ko: "이란" },
+  nz: { en: "New Zealand", zh: "新西兰", ko: "뉴질랜드" },
+  es: { en: "Spain", zh: "西班牙", ko: "스페인" },
+  cv: { en: "Cape Verde", zh: "佛得角", ko: "카보베르데" },
+  sa: { en: "Saudi Arabia", zh: "沙特阿拉伯", ko: "사우디아라비아" },
+  uy: { en: "Uruguay", zh: "乌拉圭", ko: "우루과이" },
+  fr: { en: "France", zh: "法国", ko: "프랑스" },
+  iq: { en: "Iraq", zh: "伊拉克", ko: "이라크" },
+  sn: { en: "Senegal", zh: "塞内加尔", ko: "세네갈" },
+  no: { en: "Norway", zh: "挪威", ko: "노르웨이" },
+  ar: { en: "Argentina", zh: "阿根廷", ko: "아르헨티나" },
+  dz: { en: "Algeria", zh: "阿尔及利亚", ko: "알제리" },
+  at: { en: "Austria", zh: "奥地利", ko: "오스트리아" },
+  jo: { en: "Jordan", zh: "约旦", ko: "요르단" },
+  cd: { en: "DR Congo", zh: "刚果民主共和国", ko: "콩고민주공화국" },
+  pt: { en: "Portugal", zh: "葡萄牙", ko: "포르투갈" },
+  uz: { en: "Uzbekistan", zh: "乌兹别克斯坦", ko: "우즈베키스탄" },
+  co: { en: "Colombia", zh: "哥伦比亚", ko: "콜롬비아" },
+  "gb-eng": { en: "England", zh: "英格兰", ko: "잉글랜드" },
+  hr: { en: "Croatia", zh: "克罗地亚", ko: "크로아티아" },
+  gh: { en: "Ghana", zh: "加纳", ko: "가나" },
+  pa: { en: "Panama", zh: "巴拿马", ko: "파나마" },
+};
+
+// 指定言語のチーム名を返す（未定義時は日本語名 → コードへフォールバック）
+export function teamName(code: string, lang: Lang): string {
+  if (lang === "ja") return teamByCode[code]?.nameJa ?? code;
+  return TEAM_NAMES_INTL[code]?.[lang] ?? teamByCode[code]?.nameJa ?? code;
+}
