@@ -32,17 +32,17 @@ export default function Home() {
   const selectedTeam = selected ? teamByCode[selected] : null;
 
   return (
-    <main className="relative z-10 mx-auto max-w-[1900px] px-4 py-6">
-      {/* ヘッダー（1行: 左=サブタイトル / 中央=タイトル / 右=選択中 / 一番右=言語切替） */}
-      <header className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-        {/* 左: サブタイトル */}
-        <p className="justify-self-start whitespace-nowrap text-xs tracking-[0.3em] text-white/60">
+    <main className="relative z-10 mx-auto w-full max-w-[1900px] px-2 py-4 sm:px-4 sm:py-6">
+      {/* ヘッダー: モバイルは縦積み中央寄せ / xl以上で「左=サブタイトル・中央=タイトル・右=言語」の1行 */}
+      <header className="mb-6 grid grid-cols-1 items-center gap-3 xl:grid-cols-[1fr_auto_1fr] xl:gap-4">
+        {/* サブタイトル */}
+        <p className="justify-self-center whitespace-nowrap text-xs tracking-[0.3em] text-white/60 xl:justify-self-start">
           {t.subtitle}
         </p>
 
-        {/* 中央: タイトルをページ中央に固定し、非公式バッジはその左に絶対配置 */}
-        <div className="relative justify-self-center">
-          <span className="absolute right-full top-1/2 mr-2 -translate-y-1/2 whitespace-nowrap rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/70">
+        {/* タイトル + 非公式バッジ（モバイルは横並び、xlで中央固定＆バッジ絶対配置） */}
+        <div className="relative flex flex-wrap items-center justify-center gap-2 justify-self-center">
+          <span className="static whitespace-nowrap rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/70 xl:absolute xl:right-full xl:top-1/2 xl:mr-2 xl:-translate-y-1/2">
             {t.unofficial}
           </span>
           <h1 className="whitespace-nowrap bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 bg-clip-text text-3xl font-extrabold tracking-wider text-transparent md:text-4xl">
@@ -50,8 +50,8 @@ export default function Home() {
           </h1>
         </div>
 
-        {/* 右: 選択中メッセージ + 言語切替（一番右） */}
-        <div className="flex items-center justify-end gap-3 justify-self-end text-[11px] text-white/55">
+        {/* 選択中メッセージ + 言語切替 */}
+        <div className="flex flex-wrap items-center justify-center gap-3 justify-self-center text-[11px] text-white/55 xl:justify-end xl:justify-self-end">
           {selectedTeam ? (
             <span className="whitespace-nowrap rounded-full bg-amber-400/20 px-3 py-1 text-amber-200">
               {t.selectedNote.split("{team}")[0]}
@@ -89,8 +89,8 @@ export default function Home() {
 
       {/* 3カラム: 左(A–F) / 中央トーナメント / 右(G–L) */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[280px_1fr_280px]">
-        {/* 左サイド: グループ A–F */}
-        <section className="space-y-3">
+        {/* 左サイド: グループ A–F（モバイルでは2番目） */}
+        <section className="order-2 space-y-3 xl:order-none">
           <h2 className="text-center text-xs font-semibold tracking-widest text-white/50">
             {t.groupsAF}
           </h2>
@@ -107,8 +107,8 @@ export default function Home() {
           ))}
         </section>
 
-        {/* 中央: 決勝トーナメント */}
-        <section className="min-w-0">
+        {/* 中央: 決勝トーナメント（モバイルでは最初） */}
+        <section className="order-1 min-w-0 xl:order-none">
           <h2 className="mb-2 text-center text-xs font-semibold tracking-widest text-white/50">
             {t.knockout}
           </h2>
@@ -120,8 +120,8 @@ export default function Home() {
           <p className="mt-2 text-center text-[10px] text-white/40">{t.legend}</p>
         </section>
 
-        {/* 右サイド: グループ G–L */}
-        <section className="space-y-3">
+        {/* 右サイド: グループ G–L（モバイルでは3番目） */}
+        <section className="order-3 space-y-3 xl:order-none">
           <h2 className="text-center text-xs font-semibold tracking-widest text-white/50">
             {t.groupsGL}
           </h2>
