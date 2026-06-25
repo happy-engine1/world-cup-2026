@@ -40,14 +40,14 @@ export default function Home() {
           {t.subtitle}
         </p>
 
-        {/* 中央: タイトル + 非公式バッジ */}
-        <div className="flex items-center justify-center gap-2 justify-self-center">
+        {/* 中央: タイトルをページ中央に固定し、非公式バッジはその左に絶対配置 */}
+        <div className="relative justify-self-center">
+          <span className="absolute right-full top-1/2 mr-2 -translate-y-1/2 whitespace-nowrap rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/70">
+            {t.unofficial}
+          </span>
           <h1 className="whitespace-nowrap bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 bg-clip-text text-3xl font-extrabold tracking-wider text-transparent md:text-4xl">
             {t.appTitle}
           </h1>
-          <span className="whitespace-nowrap rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/70">
-            {t.unofficial}
-          </span>
         </div>
 
         {/* 右: 選択中メッセージ + 言語切替（一番右） */}
