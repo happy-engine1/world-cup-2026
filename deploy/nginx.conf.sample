@@ -1,0 +1,36 @@
+# /etc/nginx/sites-available/world-cup-2026  (Ubuntu/Debian)
+# RHEL系(AlmaLinux/Rocky)は /etc/nginx/conf.d/world-cup-2026.conf に配置
+#
+# root は git clone 先の out/ を指す（例: /home/deploy/world-cup-2026/out）。
+# YOUR_DOMAIN を実ドメインに置き換えてください。
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name YOUR_DOMAIN;
+
+    root /home/deploy/world-cup-2026/out;
+    index index.html;
+
+    # 静的エクスポートのクリーンURL対応
+    location / {
+        try_files $uri $uri.html $uri/ /index.html;
+    }
+
+    # 404
+    error_page 404 /404.html;
+
+    # ハッシュ付きビルド資産は長期キャッシュ
+    location /_next/static/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # gzip
+    gzip on;
+    gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+    gzip_min_length 1024;
+}
+
+# ↓ certbot --nginx を実行すると 443(HTTPS) サーバーブロックと
+#   80→443 リダイレクトが自動で追記されます。
