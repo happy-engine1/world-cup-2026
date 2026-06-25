@@ -1,9 +1,9 @@
-# デプロイ手順（さくらのVPS / git pull 方式）
+# デプロイ手順（さくらのVPS / Ubuntu / git pull 方式）
 
 静的エクスポート（`out/`）を nginx で配信する。VPS 上で公開リポジトリを `git pull` →
 ビルド → nginx が `out/` を配信する構成（GitHub に鍵やSecretsを預けない）。
 
-- 対象サーバー: さくらのVPS(v3) 1G / IP `<あなたのVPSのIPアドレス>`
+- 対象サーバー: さくらのVPS(v3) 1G / Ubuntu
 - 公開リポジトリ: https://github.com/happy-engine1/world-cup-2026
 
 ---
@@ -14,9 +14,9 @@
 
 ---
 
-## 1. サーバー初期設定（推奨・最初の1回）
+## 1. サーバー初期設定（最初の1回）
 Ubuntu 既定の `ubuntu` ユーザー（sudo 可能・非root）をそのまま作業用に使う。
-新規ユーザー作成は不要。root 常用を避け、SSH を鍵認証で固める。
+root 常用を避け、SSH を鍵認証で固める。
 
 ```bash
 # 自分のPCの公開鍵が ubuntu に未登録なら、PC側から登録
@@ -30,17 +30,14 @@ PermitRootLogin no
 PasswordAuthentication no
 ```
 ```bash
-systemctl restart ssh    # RHEL系: systemctl restart sshd
+sudo systemctl restart ssh
 ```
 
 ファイアウォール（22/80/443 のみ）:
 ```bash
-# Ubuntu/Debian ※この時点では nginx 未導入なのでポート番号で開ける
-#   ('Nginx Full' プロファイルは nginx 導入後でないと存在しない)
+# この時点では nginx 未導入なのでポート番号で開ける
 sudo ufw allow 22/tcp && sudo ufw allow 80/tcp && sudo ufw allow 443/tcp
 sudo ufw enable          # 22番許可済みなので y で続行（SSHは切れない）
-# RHEL系(firewalld)
-sudo firewall-cmd --permanent --add-service={ssh,http,https} && sudo firewall-cmd --reload
 ```
 
 以降は `ubuntu` ユーザーで作業。
@@ -50,13 +47,11 @@ sudo firewall-cmd --permanent --add-service={ssh,http,https} && sudo firewall-cm
 ## 2. 必要パッケージのインストール
 ```bash
 # git / nginx
-sudo apt update && sudo apt install -y git nginx        # Ubuntu/Debian
-# sudo dnf install -y git nginx                          # AlmaLinux/Rocky
+sudo apt update && sudo apt install -y git nginx
 
 # Node.js 22 LTS（Next.js 16 は Node 20.9+ 必須）
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -   # Ubuntu/Debian
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt install -y nodejs
-# RHEL系: curl -fsSL https://rpm.nodesource.com/setup_22.x | sudo bash - && sudo dnf install -y nodejs
 
 node -v   # v22.x を確認
 ```
@@ -94,8 +89,6 @@ chmod o+x /home/ubuntu
 
 sudo nginx -t && sudo systemctl reload nginx
 ```
-RHEL系は `sites-available/enabled` が無いので
-`/etc/nginx/conf.d/world-cup-2026.conf` に直接置く。
 
 この時点で `http://YOUR_DOMAIN` で表示されるはず。
 
@@ -103,8 +96,7 @@ RHEL系は `sites-available/enabled` が無いので
 
 ## 5. HTTPS 化（Let's Encrypt）
 ```bash
-sudo apt install -y certbot python3-certbot-nginx     # Ubuntu/Debian
-# RHEL系: sudo dnf install -y certbot python3-certbot-nginx
+sudo apt install -y certbot python3-certbot-nginx
 
 sudo certbot --nginx -d YOUR_DOMAIN
 # 443サーバーブロックと 80→443 リダイレクトが自動追記される

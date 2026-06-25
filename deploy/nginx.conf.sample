@@ -1,5 +1,4 @@
-# /etc/nginx/sites-available/world-cup-2026  (Ubuntu/Debian)
-# RHEL系(AlmaLinux/Rocky)は /etc/nginx/conf.d/world-cup-2026.conf に配置
+# /etc/nginx/sites-available/world-cup-2026  (Ubuntu)
 #
 # root は git clone 先の out/ を指す（例: /home/ubuntu/world-cup-2026/out）。
 # YOUR_DOMAIN を実ドメインに置き換えてください。
