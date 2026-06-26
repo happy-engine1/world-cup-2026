@@ -5,6 +5,7 @@
 // それ以外（未確定グループの1/2位・全ての3位通過枠）は tentative（薄色表示）。
 
 import { FINAL_GROUPS, GroupLetter, TeamRow } from "./groups";
+import { Lang } from "@/i18n/config";
 
 export interface SeedSlot {
   index: number; // 0..31 ブラケット順
@@ -131,6 +132,28 @@ export const MATCH_DATES: Record<string, string> = {
 
 // 3位決定戦の日付
 export const THIRD_PLACE_DATE = "7/19";
+
+// MATCH_DATES は日本時間(JST=UTC+9)基準。言語ごとに時差で表示を切り替える。
+//   日本=+9 / 韓国=+9(=JSTと同値) / 中国=+8(−1h) / 英語=米国東部 EDT=−4(JSTから−13h)
+export const TZ_DELTA_FROM_JST: Record<Lang, number> = { ja: 0, ko: 0, zh: -1, en: -13 };
+
+// "M/D H:MM"（JST基準）を delta 時間ずらして "M/D H:MM" で返す。日付のみ等はそのまま。
+function shiftHM(s: string, delta: number): string {
+  const m = s.match(/^(\d+)\/(\d+)(?:\s+(\d+):(\d+))?$/);
+  if (!m || m[3] === undefined) return s;
+  const dt = new Date(Date.UTC(2026, Number(m[1]) - 1, Number(m[2]), Number(m[3]), Number(m[4])));
+  dt.setUTCHours(dt.getUTCHours() + delta);
+  return `${dt.getUTCMonth() + 1}/${dt.getUTCDate()} ${dt.getUTCHours()}:${String(
+    dt.getUTCMinutes()
+  ).padStart(2, "0")}`;
+}
+
+// 指定試合(round-match)の日時を、その言語のタイムゾーンで返す
+export function matchTime(key: string, lang: Lang): string {
+  const base = MATCH_DATES[key];
+  if (!base) return "";
+  return shiftHM(base, TZ_DELTA_FROM_JST[lang]);
+}
 
 // 指定ラウンドの「試合数」
 export function matchesInRound(round: number): number {

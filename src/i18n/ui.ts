@@ -38,6 +38,8 @@ export interface UIStrings {
   predictMode: string;
   resetReal: string;
   dragHint: string;
+  // 試合時刻のタイムゾーン表記
+  tzLabel: string;
   // ブラケット
   champion: string;
   finalBox: string;
@@ -87,6 +89,7 @@ export const UI: Record<Lang, UIStrings> = {
     predictMode: "予測モード（実データではありません）",
     resetReal: "実データに戻す",
     dragHint: "ドラッグで順位を予測できます",
+    tzLabel: "日本時間 (JST)",
     champion: "優勝",
     finalBox: "決勝",
     winnerVs: "勝者 vs 勝者",
@@ -134,6 +137,7 @@ export const UI: Record<Lang, UIStrings> = {
     predictMode: "Prediction mode (not actual data)",
     resetReal: "Reset to actual",
     dragHint: "Drag to predict the standings",
+    tzLabel: "US Eastern (ET)",
     champion: "CHAMPION",
     finalBox: "Final",
     winnerVs: "Winner vs Winner",
@@ -181,6 +185,7 @@ export const UI: Record<Lang, UIStrings> = {
     predictMode: "预测模式（非真实数据）",
     resetReal: "重置为真实数据",
     dragHint: "拖动可预测排名",
+    tzLabel: "中国时间 (CST)",
     champion: "冠军",
     finalBox: "决赛",
     winnerVs: "胜者 vs 胜者",
@@ -228,6 +233,7 @@ export const UI: Record<Lang, UIStrings> = {
     predictMode: "예측 모드 (실제 데이터 아님)",
     resetReal: "실제 데이터로 초기화",
     dragHint: "드래그하여 순위를 예측할 수 있습니다",
+    tzLabel: "한국 시간 (KST)",
     champion: "우승",
     finalBox: "결승",
     winnerVs: "승자 vs 승자",

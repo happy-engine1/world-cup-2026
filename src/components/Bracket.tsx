@@ -3,7 +3,7 @@
 import {
   SeedSlot,
   Highlight,
-  MATCH_DATES,
+  matchTime,
   THIRD_PLACE_DATE,
 } from "@/data/bracket";
 import { teamName } from "@/data/groups";
@@ -123,6 +123,7 @@ function R32Column({
   side: Side;
   label: string;
 }) {
+  const { lang } = useI18n();
   return (
     <div className="flex h-full w-40 flex-col">
       <ColHeader label={label} />
@@ -139,7 +140,7 @@ function R32Column({
                 }`}
               >
                 <div className="border-b border-white/10 bg-black/25 px-1 text-center text-[8px] tracking-wide text-white/45">
-                  {MATCH_DATES[`0-${m}`]}
+                  {matchTime(`0-${m}`, lang)}
                 </div>
                 <SeedLine slot={seeds[m * 2]} highlight={highlight} onSelectTeam={onSelectTeam} side={side} />
                 <div className="border-t border-white/10" />
@@ -165,7 +166,7 @@ function RoundColumn({
   highlight: Highlight;
   label: string;
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   return (
     <div className="flex h-full w-20 flex-col">
       <ColHeader label={label} />
@@ -183,7 +184,7 @@ function RoundColumn({
               >
                 <div className="text-[9px] italic text-white/30">{t.winner}</div>
                 <div className="text-[8px] leading-tight text-white/40">
-                  {MATCH_DATES[`${round}-${m}`]}
+                  {matchTime(`${round}-${m}`, lang)}
                 </div>
               </div>
             </Slot>
@@ -254,7 +255,7 @@ function StraightColumn({ on }: { on: boolean }) {
 }
 
 export default function Bracket({ seeds, highlight, onSelectTeam }: BracketProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const finalOnRoute = highlight.routeMatches.has("4-0");
   const sfLeftOnRoute = highlight.routeMatches.has("3-0");
   const sfRightOnRoute = highlight.routeMatches.has("3-1");
@@ -300,7 +301,7 @@ export default function Bracket({ seeds, highlight, onSelectTeam }: BracketProps
             <div className="text-[10px] uppercase tracking-widest text-amber-200">{t.finalBox}</div>
             <div className="mt-0.5 text-[9px] italic text-white/40">{t.winnerVs}</div>
             <div className="mt-0.5 text-[9px] font-semibold text-amber-200/80">
-              {MATCH_DATES["4-0"]}
+              {matchTime("4-0", lang)}
             </div>
           </div>
           <div className="mt-3 text-[9px] text-white/35">

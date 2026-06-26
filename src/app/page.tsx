@@ -187,6 +187,7 @@ export default function Home() {
             </div>
           </div>
           <p className="mt-2 text-center text-[10px] text-white/40">{t.legend}</p>
+          <p className="mt-0.5 text-center text-[10px] text-white/40">🕒 {t.tzLabel}</p>
 
           {/* 幅が足りる場合: 3位チーム表をトーナメントの下に */}
           <div className="mt-4 hidden xl:block">
