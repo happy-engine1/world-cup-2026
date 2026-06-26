@@ -86,7 +86,7 @@ function DraggableRow({
       dragListener={false}
       dragControls={controls}
       onClick={() => onSelectTeam(row.code)}
-      className={`flex cursor-pointer items-center border-t border-white/5 bg-white/[0.01] text-xs transition-colors ${rowClass}`}
+      className={`flex cursor-pointer items-center border-t border-white/5 text-xs transition-colors ${rowClass}`}
     >
       <span
         onPointerDown={(e) => controls.start(e)}

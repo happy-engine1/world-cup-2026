@@ -51,7 +51,7 @@ function ThirdRow({
       dragListener={false}
       dragControls={controls}
       onClick={() => onSelectTeam(team.code)}
-      className={`relative cursor-pointer border-t border-white/5 bg-white/[0.01] text-[11px] transition-colors ${GRID} ${
+      className={`relative cursor-pointer border-t border-white/5 text-[11px] transition-colors ${GRID} ${
         rank === QUALIFY ? "border-b-2 border-b-amber-400/50" : ""
       } ${
         isSel
