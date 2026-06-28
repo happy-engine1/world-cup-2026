@@ -79,13 +79,23 @@ function assignThirds(qualifying: GroupLetter[]): Record<number, GroupLetter> {
 }
 
 // 現在のグループ順序と「3位通過の上位8グループ（順序付き）」からブラケットのシードを構築。
+// FIFA公式（大会規定 Annex C）準拠の3位枠割当。
+// キー = 通過した3位グループをソートした文字列。値 = リーフindex → 割当グループ。
+// 該当する組合せがあれば公式表どおりに配置し、無ければ下の assignThirds（有効な自動割当）にフォールバック。
+const OFFICIAL_THIRD_ASSIGNMENT: Record<string, Record<number, GroupLetter>> = {
+  // 2026本大会の確定組合せ {B,D,E,F,G,I,K,L}
+  "B,D,E,F,G,I,K,L": { 1: "D", 3: "F", 13: "B", 15: "I", 21: "E", 23: "K", 29: "G", 31: "L" },
+};
+
 //   orderOf(g): 各グループの順位順 TeamRow[]（予測時はユーザー指定、既定は rankGroup）
 //   qualifyingThirds: 3位ランキング上位8グループ
 export function computeSeeds(
   orderOf: (g: GroupLetter) => TeamRow[],
   qualifyingThirds: GroupLetter[]
 ): SeedSlot[] {
-  const thirdAssign = assignThirds(qualifyingThirds);
+  const key = [...qualifyingThirds].sort().join(",");
+  const thirdAssign =
+    OFFICIAL_THIRD_ASSIGNMENT[key] ?? assignThirds(qualifyingThirds);
   return LEAVES.map((leaf, i): SeedSlot => {
     if (leaf.kind === "third") {
       const g = thirdAssign[i] ?? leaf.allowed[0]; // フォールバック
