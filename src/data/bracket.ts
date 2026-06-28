@@ -83,7 +83,9 @@ function assignThirds(qualifying: GroupLetter[]): Record<number, GroupLetter> {
 // キー = 通過した3位グループをソートした文字列。値 = リーフindex → 割当グループ。
 // 該当する組合せがあれば公式表どおりに配置し、無ければ下の assignThirds（有効な自動割当）にフォールバック。
 const OFFICIAL_THIRD_ASSIGNMENT: Record<string, Record<number, GroupLetter>> = {
-  // 2026本大会の確定組合せ {B,D,E,F,G,I,K,L}
+  // 2026本大会の最終確定組合せ {B,D,E,F,I,J,K,L}（J組3位アルジェリアが通過、G組3位イランは敗退）
+  "B,D,E,F,I,J,K,L": { 1: "D", 3: "F", 13: "B", 15: "I", 21: "E", 23: "K", 29: "J", 31: "L" },
+  // 参考: J組終了前の暫定組合せ {B,D,E,F,G,I,K,L}
   "B,D,E,F,G,I,K,L": { 1: "D", 3: "F", 13: "B", 15: "I", 21: "E", 23: "K", 29: "G", 31: "L" },
 };
 
@@ -94,8 +96,8 @@ export function computeSeeds(
   qualifyingThirds: GroupLetter[]
 ): SeedSlot[] {
   const key = [...qualifyingThirds].sort().join(",");
-  const thirdAssign =
-    OFFICIAL_THIRD_ASSIGNMENT[key] ?? assignThirds(qualifyingThirds);
+  const official = OFFICIAL_THIRD_ASSIGNMENT[key];
+  const thirdAssign = official ?? assignThirds(qualifyingThirds);
   return LEAVES.map((leaf, i): SeedSlot => {
     if (leaf.kind === "third") {
       const g = thirdAssign[i] ?? leaf.allowed[0]; // フォールバック
@@ -105,7 +107,8 @@ export function computeSeeds(
         group: g,
         allowed: leaf.allowed,
         team: orderOf(g)[2],
-        confirmed: false,
+        // 公式割当が使え、かつ全グループ確定なら3位通過も確定（暫定バッジを外す）
+        confirmed: official !== undefined && FINAL_GROUPS.has(g),
       };
     }
     const team = orderOf(leaf.group)[leaf.pos === "1" ? 0 : 1];
