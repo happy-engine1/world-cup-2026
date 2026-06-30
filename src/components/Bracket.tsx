@@ -52,13 +52,19 @@ function MatchHeader({
   const decided = node?.result != null;
   return (
     <div
-      className={`border-b border-white/10 px-1 text-center text-[8px] tracking-wide ${
-        decided
-          ? "bg-amber-400/15 font-semibold text-amber-200/90"
-          : "bg-black/25 text-white/45"
+      className={`border-b border-white/10 px-1 text-center leading-tight ${
+        decided ? "bg-amber-400/15" : "bg-black/25"
       }`}
     >
-      {decided ? scoreText(node!, t.pens) : matchTime(mkey, lang)}
+      {/* 日付・時刻は試合後も残す */}
+      <div className="text-[8px] tracking-wide text-white/45">
+        {matchTime(mkey, lang)}
+      </div>
+      {decided && (
+        <div className="text-[8px] font-semibold text-amber-200/90">
+          {scoreText(node!, t.pens)}
+        </div>
+      )}
     </div>
   );
 }
@@ -496,8 +502,13 @@ export default function Bracket({
             ) : (
               <div className="px-1 py-1.5 text-[9px] italic text-white/40">{t.winnerVs}</div>
             )}
-            <div className="bg-black/20 px-1 py-0.5 text-[9px] font-semibold text-amber-200/80">
-              {finalNode?.result ? scoreText(finalNode, t.pens) : matchTime("4-0", lang)}
+            <div className="bg-black/20 px-1 py-0.5 text-[9px] text-amber-200/80">
+              <span>{matchTime("4-0", lang)}</span>
+              {finalNode?.result && (
+                <span className="ml-1 font-semibold">
+                  {scoreText(finalNode, t.pens)}
+                </span>
+              )}
             </div>
           </div>
           <div className="mt-3 text-[9px] text-white/35">
