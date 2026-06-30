@@ -134,6 +134,7 @@ export interface KOResult {
 export const KO_RESULTS: Record<string, KOResult> = {
   "0-0": { winner: "py", score: "1-1", pens: "3-4" }, // ドイツ(E1) 1-1 パラグアイ(D3) PK3-4
   "0-2": { winner: "ca", score: "0-1" }, // 南アフリカ(A2) 0-1 カナダ(B2)
+  "0-3": { winner: "ma", score: "1-1", pens: "2-3" }, // オランダ(F1) 1-1 モロッコ(C2) PK2-3
   "0-8": { winner: "br", score: "2-1" }, // ブラジル(C1) 2-1 日本(F2)
 };
 
