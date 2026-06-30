@@ -4,7 +4,7 @@
 // 各リーフは groups の現順位から解決される。グループ1/2位は確定グループなら confirmed、
 // それ以外（未確定グループの1/2位・全ての3位通過枠）は tentative（薄色表示）。
 
-import { FINAL_GROUPS, GroupLetter, TeamRow } from "./groups";
+import { FINAL_GROUPS, GroupLetter, TeamRow, teamByCode } from "./groups";
 import { Lang } from "@/i18n/config";
 
 export interface SeedSlot {
@@ -120,6 +120,80 @@ export function computeSeeds(
       confirmed: FINAL_GROUPS.has(leaf.group),
     };
   });
+}
+
+// ===== ノックアウトの実際の勝敗結果 =====
+export interface KOResult {
+  winner: string; // 勝者チームコード
+  score: string; // 90分/延長のスコア（「teamA-teamB」の並び）
+  pens?: string; // PK戦スコア（あれば、「teamA-teamB」）
+}
+
+// キー = `${round}-${match}`（round0=ベスト32 … round4=決勝）。teamA/teamB は computeBracket の並び。
+// 出典: FIFA公式 試合結果（2026-06 時点のスナップショット）。
+export const KO_RESULTS: Record<string, KOResult> = {
+  "0-0": { winner: "py", score: "1-1", pens: "3-4" }, // ドイツ(E1) 1-1 パラグアイ(D3) PK3-4
+  "0-2": { winner: "ca", score: "0-1" }, // 南アフリカ(A2) 0-1 カナダ(B2)
+  "0-8": { winner: "br", score: "2-1" }, // ブラジル(C1) 2-1 日本(F2)
+};
+
+// ノックアウト1試合分のノード（参加2チーム・結果・勝者）。round0 は seeds、以降は子試合の勝者。
+export interface MatchNode {
+  round: number;
+  match: number;
+  teamA: TeamRow | null; // 左/上 の参加チーム（未定なら null）
+  teamB: TeamRow | null; // 右/下 の参加チーム（未定なら null）
+  result: KOResult | null;
+  winner: TeamRow | null;
+}
+
+// seeds と実結果から全ノックアウト試合のノードを構築。
+// useResults=false（予測モード）では結果を無視し、参加・勝者とも未定扱い（従来のプレースホルダ表示）。
+export function computeBracket(
+  seeds: SeedSlot[],
+  useResults: boolean
+): Record<string, MatchNode> {
+  const nodes: Record<string, MatchNode> = {};
+  const make = (
+    round: number,
+    match: number,
+    a: TeamRow | null,
+    b: TeamRow | null
+  ): MatchNode => {
+    const result = useResults ? KO_RESULTS[`${round}-${match}`] ?? null : null;
+    let winner: TeamRow | null = null;
+    if (result) {
+      winner =
+        a?.code === result.winner
+          ? a
+          : b?.code === result.winner
+          ? b
+          : teamByCode[result.winner] ?? null;
+    }
+    return { round, match, teamA: a, teamB: b, result, winner };
+  };
+  // ベスト32（round0）: 参加は seeds
+  for (let m = 0; m < 16; m++) {
+    nodes[`0-${m}`] = make(0, m, seeds[m * 2].team, seeds[m * 2 + 1].team);
+  }
+  // 以降のラウンドは子試合（2m, 2m+1）の勝者が参加
+  for (let round = 1; round <= 4; round++) {
+    const count = 32 / Math.pow(2, round + 1);
+    for (let m = 0; m < count; m++) {
+      const a = nodes[`${round - 1}-${m * 2}`].winner;
+      const b = nodes[`${round - 1}-${m * 2 + 1}`].winner;
+      nodes[`${round}-${m}`] = make(round, m, a, b);
+    }
+  }
+  return nodes;
+}
+
+// 試合ノードのスコア表示文字列（"1-1 (PK 3-4)" / "0-1"）。結果が無ければ空。
+export function scoreText(node: MatchNode, pensLabel: string): string {
+  if (!node.result) return "";
+  return node.result.pens
+    ? `${node.result.score} (${pensLabel} ${node.result.pens})`
+    : node.result.score;
 }
 
 export const ROUND_NAMES = ["ベスト32", "ベスト16", "準々決勝", "準決勝", "決勝"];

@@ -47,6 +47,7 @@ export interface UIStrings {
   thirdPlace: string;
   winner: string;
   provisional: string;
+  pens: string; // PK戦の短縮ラベル
   roundShort: [string, string, string, string, string]; // [_, R16, QF, SF, Final]
   // フッター
   footer1: string;
@@ -96,6 +97,7 @@ export const UI: Record<Lang, UIStrings> = {
     thirdPlace: "3位決定戦あり",
     winner: "勝者",
     provisional: "暫定",
+    pens: "PK",
     roundShort: ["", "ベスト16", "準々決勝", "準決勝", "決勝"],
     footer1:
       "当サイトはサッカーファンが個人的に作成した非公式のトーナメント表です。FIFAおよび大会主催者・各国サッカー協会・関連団体とは一切関係がなく、これらに承認・提携・後援されたものではありません。",
@@ -144,6 +146,7 @@ export const UI: Record<Lang, UIStrings> = {
     thirdPlace: "incl. 3rd-place match",
     winner: "Winner",
     provisional: "Prov.",
+    pens: "pens",
     roundShort: ["", "Round of 16", "Quarter-finals", "Semi-finals", "Final"],
     footer1:
       "This is an unofficial bracket created by a football fan for personal use. It is not affiliated with, endorsed by, or associated with FIFA, the tournament organizers, national football associations, or any related body.",
@@ -192,6 +195,7 @@ export const UI: Record<Lang, UIStrings> = {
     thirdPlace: "含季军赛",
     winner: "胜者",
     provisional: "暂定",
+    pens: "点球",
     roundShort: ["", "16强", "八强", "四强", "决赛"],
     footer1:
       "本网站是球迷个人制作的非官方对阵图，与FIFA及大会主办方、各国足球协会及相关机构均无任何关系，未获其认可、合作或赞助。",
@@ -240,6 +244,7 @@ export const UI: Record<Lang, UIStrings> = {
     thirdPlace: "3·4위전 포함",
     winner: "승자",
     provisional: "잠정",
+    pens: "승부차기",
     roundShort: ["", "16강", "8강", "4강", "결승"],
     footer1:
       "본 사이트는 축구 팬이 개인적으로 제작한 비공식 대진표입니다. FIFA 및 대회 주최측·각국 축구협회·관련 단체와 일절 관계가 없으며 이들의 승인·제휴·후원을 받지 않았습니다.",

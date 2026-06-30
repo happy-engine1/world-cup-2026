@@ -2,17 +2,20 @@
 
 import {
   SeedSlot,
+  MatchNode,
   Highlight,
   matchTime,
+  scoreText,
   THIRD_PLACE_DATE,
 } from "@/data/bracket";
-import { teamName } from "@/data/groups";
+import { teamName, TeamRow } from "@/data/groups";
 import { useI18n } from "@/i18n/I18nProvider";
 import { seedLabel } from "@/i18n/ui";
 import Flag from "./Flag";
 
 interface BracketProps {
   seeds: SeedSlot[];
+  nodes: Record<string, MatchNode>; // ノックアウト各試合の参加・結果・勝者
   highlight: Highlight;
   onSelectTeam: (code: string) => void;
 }
@@ -37,22 +40,51 @@ function Slot({ children }: { children: React.ReactNode }) {
   return <div className="flex flex-1 items-center">{children}</div>;
 }
 
+// 試合ボックスのヘッダー（結果があればスコア、無ければ試合時刻）
+function MatchHeader({
+  mkey,
+  node,
+}: {
+  mkey: string;
+  node: MatchNode | undefined;
+}) {
+  const { lang, t } = useI18n();
+  const decided = node?.result != null;
+  return (
+    <div
+      className={`border-b border-white/10 px-1 text-center text-[8px] tracking-wide ${
+        decided
+          ? "bg-amber-400/15 font-semibold text-amber-200/90"
+          : "bg-black/25 text-white/45"
+      }`}
+    >
+      {decided ? scoreText(node!, t.pens) : matchTime(mkey, lang)}
+    </div>
+  );
+}
+
 // 1チームの枠（ベスト32の出場枠）。確定=濃色、未確定=薄色(イタリック)。
+// 結果が出た試合では勝者を強調、敗者を淡色＋打消し線で表示。
 function SeedLine({
   slot,
   highlight,
   onSelectTeam,
   side,
+  decided,
+  isWinner,
 }: {
   slot: SeedSlot;
   highlight: Highlight;
   onSelectTeam: (code: string) => void;
   side: Side;
+  decided: boolean;
+  isWinner: boolean;
 }) {
   const { lang, t } = useI18n();
   const isSel = highlight.selected === slot.team.code;
   const isOpp = highlight.opponents.has(slot.team.code) && !isSel;
   const dim = highlight.selected && !isSel && !isOpp;
+  const loser = decided && !isWinner;
 
   // 出場元ラベル（例: C1 / F2 / C/E/F/H/I3）
   const source =
@@ -69,6 +101,8 @@ function SeedLine({
           ? "bg-amber-400/30 ring-1 ring-amber-300"
           : isOpp
           ? "bg-cyan-400/20"
+          : isWinner
+          ? "bg-amber-400/10"
           : "hover:bg-white/10"
       } ${dim ? "opacity-40" : ""}`}
     >
@@ -88,16 +122,31 @@ function SeedLine({
           code={slot.team.flag}
           alt={teamName(slot.team.code, lang)}
           size={16}
-          className={slot.confirmed ? "" : "opacity-70 saturate-50"}
+          className={
+            loser
+              ? "opacity-40 saturate-0"
+              : slot.confirmed
+              ? ""
+              : "opacity-70 saturate-50"
+          }
         />
         <span
           className={`flex-1 truncate text-[10px] ${
-            slot.confirmed ? "text-white/90" : "italic text-white/45"
-          } ${isSel ? "font-bold text-amber-100" : ""}`}
+            loser
+              ? "text-white/35 line-through"
+              : slot.confirmed
+              ? "text-white/90"
+              : "italic text-white/45"
+          } ${isWinner ? "font-bold text-amber-100" : ""} ${
+            isSel ? "font-bold text-amber-100" : ""
+          }`}
         >
           {teamName(slot.team.code, lang)}
         </span>
-        {!slot.confirmed && (
+        {isWinner && (
+          <span className="shrink-0 text-[9px] leading-none text-amber-300">✓</span>
+        )}
+        {!slot.confirmed && !decided && (
           <span className="shrink-0 rounded-sm bg-sky-500/20 px-1 text-[8px] not-italic leading-tight text-sky-300">
             {t.provisional}
           </span>
@@ -107,9 +156,74 @@ function SeedLine({
   );
 }
 
+// 内部ラウンドの1チーム行（勝者/参加チーム or 未定プレースホルダ）
+function NodeTeam({
+  team,
+  isWinner,
+  decided,
+  side,
+  highlight,
+  onSelectTeam,
+}: {
+  team: TeamRow | null;
+  isWinner: boolean;
+  decided: boolean;
+  side: Side;
+  highlight: Highlight;
+  onSelectTeam: (code: string) => void;
+}) {
+  const { lang, t } = useI18n();
+  if (!team) {
+    return (
+      <div className="px-1.5 py-1 text-center text-[9px] italic text-white/30">
+        {t.winner}
+      </div>
+    );
+  }
+  const isSel = highlight.selected === team.code;
+  const isOpp = highlight.opponents.has(team.code) && !isSel;
+  const dim = highlight.selected && !isSel && !isOpp;
+  const loser = decided && !isWinner;
+
+  return (
+    <button
+      onClick={() => onSelectTeam(team.code)}
+      className={`flex w-full items-center gap-1.5 px-1.5 py-1 transition-all ${
+        side === "right" ? "flex-row-reverse text-right" : "text-left"
+      } ${
+        isSel
+          ? "bg-amber-400/30 ring-1 ring-amber-300"
+          : isOpp
+          ? "bg-cyan-400/20"
+          : isWinner
+          ? "bg-amber-400/10"
+          : "hover:bg-white/10"
+      } ${dim ? "opacity-40" : ""}`}
+    >
+      <Flag
+        code={team.flag}
+        alt={teamName(team.code, lang)}
+        size={14}
+        className={loser ? "opacity-40 saturate-0" : ""}
+      />
+      <span
+        className={`flex-1 truncate text-[10px] ${
+          loser ? "text-white/35 line-through" : "text-white/90"
+        } ${isWinner || isSel ? "font-bold text-amber-100" : ""}`}
+      >
+        {teamName(team.code, lang)}
+      </span>
+      {isWinner && (
+        <span className="shrink-0 text-[9px] leading-none text-amber-300">✓</span>
+      )}
+    </button>
+  );
+}
+
 // ベスト32（実チームが入る試合）のカラム
 function R32Column({
   seeds,
+  nodes,
   matches,
   highlight,
   onSelectTeam,
@@ -117,19 +231,23 @@ function R32Column({
   label,
 }: {
   seeds: SeedSlot[];
+  nodes: Record<string, MatchNode>;
   matches: number[];
   highlight: Highlight;
   onSelectTeam: (code: string) => void;
   side: Side;
   label: string;
 }) {
-  const { lang } = useI18n();
   return (
     <div className="flex h-full w-40 flex-col">
       <ColHeader label={label} />
       <div className="flex flex-1 flex-col">
         {matches.map((m) => {
-          const onRoute = highlight.routeMatches.has(`0-${m}`);
+          const key = `0-${m}`;
+          const node = nodes[key];
+          const onRoute = highlight.routeMatches.has(key);
+          const decided = node?.result != null;
+          const wc = node?.winner?.code;
           return (
             <Slot key={m}>
               <div
@@ -139,12 +257,24 @@ function R32Column({
                     : "border-white/10"
                 }`}
               >
-                <div className="border-b border-white/10 bg-black/25 px-1 text-center text-[8px] tracking-wide text-white/45">
-                  {matchTime(`0-${m}`, lang)}
-                </div>
-                <SeedLine slot={seeds[m * 2]} highlight={highlight} onSelectTeam={onSelectTeam} side={side} />
+                <MatchHeader mkey={key} node={node} />
+                <SeedLine
+                  slot={seeds[m * 2]}
+                  highlight={highlight}
+                  onSelectTeam={onSelectTeam}
+                  side={side}
+                  decided={decided}
+                  isWinner={decided && seeds[m * 2].team.code === wc}
+                />
                 <div className="border-t border-white/10" />
-                <SeedLine slot={seeds[m * 2 + 1]} highlight={highlight} onSelectTeam={onSelectTeam} side={side} />
+                <SeedLine
+                  slot={seeds[m * 2 + 1]}
+                  highlight={highlight}
+                  onSelectTeam={onSelectTeam}
+                  side={side}
+                  decided={decided}
+                  isWinner={decided && seeds[m * 2 + 1].team.code === wc}
+                />
               </div>
             </Slot>
           );
@@ -154,38 +284,61 @@ function R32Column({
   );
 }
 
-// 内部ラウンド（勝者未定）のプレースホルダ・カラム
-function RoundColumn({
+// 内部ラウンド（ベスト16〜準決勝）のカラム。参加チーム/結果を反映。
+function InternalColumn({
+  nodes,
   round,
   matches,
   highlight,
+  onSelectTeam,
+  side,
   label,
 }: {
+  nodes: Record<string, MatchNode>;
   round: number;
   matches: number[];
   highlight: Highlight;
+  onSelectTeam: (code: string) => void;
+  side: Side;
   label: string;
 }) {
-  const { t, lang } = useI18n();
   return (
-    <div className="flex h-full w-20 flex-col">
+    <div className="flex h-full w-28 flex-col">
       <ColHeader label={label} />
       <div className="flex flex-1 flex-col">
         {matches.map((m) => {
-          const onRoute = highlight.routeMatches.has(`${round}-${m}`);
+          const key = `${round}-${m}`;
+          const node = nodes[key];
+          const onRoute = highlight.routeMatches.has(key);
+          const decided = node?.result != null;
+          const wc = node?.winner?.code;
           return (
             <Slot key={m}>
               <div
-                className={`w-full rounded border bg-white/[0.04] px-1 py-2 text-center ${
+                className={`w-full overflow-hidden rounded-md border bg-white/[0.05] ${
                   onRoute
                     ? "border-amber-300 shadow-[0_0_10px_rgba(245,197,66,0.45)]"
                     : "border-white/10"
                 }`}
               >
-                <div className="text-[9px] italic text-white/30">{t.winner}</div>
-                <div className="text-[8px] leading-tight text-white/40">
-                  {matchTime(`${round}-${m}`, lang)}
-                </div>
+                <MatchHeader mkey={key} node={node} />
+                <NodeTeam
+                  team={node?.teamA ?? null}
+                  isWinner={decided && node?.teamA?.code === wc}
+                  decided={decided}
+                  side={side}
+                  highlight={highlight}
+                  onSelectTeam={onSelectTeam}
+                />
+                <div className="border-t border-white/10" />
+                <NodeTeam
+                  team={node?.teamB ?? null}
+                  isWinner={decided && node?.teamB?.code === wc}
+                  decided={decided}
+                  side={side}
+                  highlight={highlight}
+                  onSelectTeam={onSelectTeam}
+                />
               </div>
             </Slot>
           );
@@ -254,11 +407,19 @@ function StraightColumn({ on }: { on: boolean }) {
   );
 }
 
-export default function Bracket({ seeds, highlight, onSelectTeam }: BracketProps) {
+export default function Bracket({
+  seeds,
+  nodes,
+  highlight,
+  onSelectTeam,
+}: BracketProps) {
   const { t, lang } = useI18n();
   const finalOnRoute = highlight.routeMatches.has("4-0");
   const sfLeftOnRoute = highlight.routeMatches.has("3-0");
   const sfRightOnRoute = highlight.routeMatches.has("3-1");
+
+  const finalNode = nodes["4-0"];
+  const champion = finalNode?.winner ?? null;
 
   // ラウンド名（分数表記）: 1/16 → 1/8 → 1/4 → 1/2
   const R = ["1/16", "1/8", "1/4", "1/2"];
@@ -266,13 +427,13 @@ export default function Bracket({ seeds, highlight, onSelectTeam }: BracketProps
   return (
     <div className="mx-auto flex h-full w-max items-stretch">
       {/* ===== 左半分: R32 → R16 → QF → SF ===== */}
-      <R32Column seeds={seeds} matches={[0, 1, 2, 3, 4, 5, 6, 7]} highlight={highlight} onSelectTeam={onSelectTeam} side="left" label={R[0]} />
+      <R32Column seeds={seeds} nodes={nodes} matches={[0, 1, 2, 3, 4, 5, 6, 7]} highlight={highlight} onSelectTeam={onSelectTeam} side="left" label={R[0]} />
       <ElbowColumn parentRound={1} parents={[0, 1, 2, 3]} highlight={highlight} side="left" />
-      <RoundColumn round={1} matches={[0, 1, 2, 3]} highlight={highlight} label={R[1]} />
+      <InternalColumn nodes={nodes} round={1} matches={[0, 1, 2, 3]} highlight={highlight} onSelectTeam={onSelectTeam} side="left" label={R[1]} />
       <ElbowColumn parentRound={2} parents={[0, 1]} highlight={highlight} side="left" />
-      <RoundColumn round={2} matches={[0, 1]} highlight={highlight} label={R[2]} />
+      <InternalColumn nodes={nodes} round={2} matches={[0, 1]} highlight={highlight} onSelectTeam={onSelectTeam} side="left" label={R[2]} />
       <ElbowColumn parentRound={3} parents={[0]} highlight={highlight} side="left" />
-      <RoundColumn round={3} matches={[0]} highlight={highlight} label={R[3]} />
+      <InternalColumn nodes={nodes} round={3} matches={[0]} highlight={highlight} onSelectTeam={onSelectTeam} side="left" label={R[3]} />
       <StraightColumn on={finalOnRoute && sfLeftOnRoute} />
 
       {/* ===== 中央: トロフィー + 決勝 ===== */}
@@ -290,18 +451,53 @@ export default function Bracket({ seeds, highlight, onSelectTeam }: BracketProps
             <div className="mt-1 text-xs font-bold tracking-widest text-amber-300">
               {t.champion}
             </div>
+            {champion && (
+              <button
+                onClick={() => onSelectTeam(champion.code)}
+                className="mt-1 flex items-center justify-center gap-1.5"
+              >
+                <Flag code={champion.flag} alt={teamName(champion.code, lang)} size={18} />
+                <span className="text-sm font-bold text-amber-100">
+                  {teamName(champion.code, lang)}
+                </span>
+              </button>
+            )}
           </div>
           <div
-            className={`w-28 rounded-md border bg-white/[0.06] p-2 text-center ${
+            className={`w-28 overflow-hidden rounded-md border bg-white/[0.06] text-center ${
               finalOnRoute
                 ? "border-amber-300 shadow-[0_0_16px_rgba(245,197,66,0.6)]"
                 : "border-amber-300/40"
             }`}
           >
-            <div className="text-[10px] uppercase tracking-widest text-amber-200">{t.finalBox}</div>
-            <div className="mt-0.5 text-[9px] italic text-white/40">{t.winnerVs}</div>
-            <div className="mt-0.5 text-[9px] font-semibold text-amber-200/80">
-              {matchTime("4-0", lang)}
+            <div className="bg-black/20 px-1 py-0.5 text-[10px] uppercase tracking-widest text-amber-200">
+              {t.finalBox}
+            </div>
+            {finalNode && (finalNode.teamA || finalNode.teamB) ? (
+              <>
+                <NodeTeam
+                  team={finalNode.teamA}
+                  isWinner={finalNode.result != null && finalNode.teamA?.code === champion?.code}
+                  decided={finalNode.result != null}
+                  side="left"
+                  highlight={highlight}
+                  onSelectTeam={onSelectTeam}
+                />
+                <div className="border-t border-white/10" />
+                <NodeTeam
+                  team={finalNode.teamB}
+                  isWinner={finalNode.result != null && finalNode.teamB?.code === champion?.code}
+                  decided={finalNode.result != null}
+                  side="left"
+                  highlight={highlight}
+                  onSelectTeam={onSelectTeam}
+                />
+              </>
+            ) : (
+              <div className="px-1 py-1.5 text-[9px] italic text-white/40">{t.winnerVs}</div>
+            )}
+            <div className="bg-black/20 px-1 py-0.5 text-[9px] font-semibold text-amber-200/80">
+              {finalNode?.result ? scoreText(finalNode, t.pens) : matchTime("4-0", lang)}
             </div>
           </div>
           <div className="mt-3 text-[9px] text-white/35">
@@ -312,13 +508,13 @@ export default function Bracket({ seeds, highlight, onSelectTeam }: BracketProps
 
       {/* ===== 右半分: SF → QF → R16 → R32 ===== */}
       <StraightColumn on={finalOnRoute && sfRightOnRoute} />
-      <RoundColumn round={3} matches={[1]} highlight={highlight} label={R[3]} />
+      <InternalColumn nodes={nodes} round={3} matches={[1]} highlight={highlight} onSelectTeam={onSelectTeam} side="right" label={R[3]} />
       <ElbowColumn parentRound={3} parents={[1]} highlight={highlight} side="right" />
-      <RoundColumn round={2} matches={[2, 3]} highlight={highlight} label={R[2]} />
+      <InternalColumn nodes={nodes} round={2} matches={[2, 3]} highlight={highlight} onSelectTeam={onSelectTeam} side="right" label={R[2]} />
       <ElbowColumn parentRound={2} parents={[2, 3]} highlight={highlight} side="right" />
-      <RoundColumn round={1} matches={[4, 5, 6, 7]} highlight={highlight} label={R[1]} />
+      <InternalColumn nodes={nodes} round={1} matches={[4, 5, 6, 7]} highlight={highlight} onSelectTeam={onSelectTeam} side="right" label={R[1]} />
       <ElbowColumn parentRound={1} parents={[4, 5, 6, 7]} highlight={highlight} side="right" />
-      <R32Column seeds={seeds} matches={[8, 9, 10, 11, 12, 13, 14, 15]} highlight={highlight} onSelectTeam={onSelectTeam} side="right" label={R[0]} />
+      <R32Column seeds={seeds} nodes={nodes} matches={[8, 9, 10, 11, 12, 13, 14, 15]} highlight={highlight} onSelectTeam={onSelectTeam} side="right" label={R[0]} />
     </div>
   );
 }

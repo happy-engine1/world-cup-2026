@@ -11,7 +11,7 @@ import {
   teamName,
   TeamRow,
 } from "@/data/groups";
-import { computeSeeds, getHighlight } from "@/data/bracket";
+import { computeSeeds, computeBracket, getHighlight } from "@/data/bracket";
 import { useI18n } from "@/i18n/I18nProvider";
 import { LANGS } from "@/i18n/config";
 import GroupTable from "@/components/GroupTable";
@@ -52,6 +52,12 @@ export default function Home() {
   const seeds = useMemo(
     () => computeSeeds(groupOrder, thirds.slice(0, 8).map((x) => x.group)),
     [groupOrder, thirds]
+  );
+
+  // ノックアウトの参加・結果・勝者（予測モード中は実結果を無視）
+  const nodes = useMemo(
+    () => computeBracket(seeds, !isPredicting),
+    [seeds, isPredicting]
   );
 
   const highlight = useMemo(() => getHighlight(selected, seeds), [selected, seeds]);
@@ -183,7 +189,7 @@ export default function Home() {
           </h2>
           <div className="overflow-x-auto rounded-xl border border-white/10 bg-black/20 p-3">
             <div className="h-[920px]">
-              <Bracket seeds={seeds} highlight={highlight} onSelectTeam={selectTeam} />
+              <Bracket seeds={seeds} nodes={nodes} highlight={highlight} onSelectTeam={selectTeam} />
             </div>
           </div>
           <p className="mt-2 text-center text-[10px] text-white/40">{t.legend}</p>
