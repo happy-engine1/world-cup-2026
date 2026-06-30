@@ -138,7 +138,11 @@ export const KO_RESULTS: Record<string, KOResult> = {
   "0-3": { winner: "ma", score: "1-1", pens: "2-3" }, // オランダ(F1) 1-1 モロッコ(C2) PK2-3
   "0-8": { winner: "br", score: "2-1" }, // ブラジル(C1) 2-1 日本(F2)
   "0-9": { winner: "no", score: "1-2" }, // コートジボワール(E2) 1-2 ノルウェー(I2)
+  // 3位決定戦（両準決勝の敗者）。キーは "tp"。例: "tp": { winner: "...", score: "x-y" }
 };
+
+// 3位決定戦ノードのキー
+export const THIRD_PLACE_KEY = "tp";
 
 // ノックアウト1試合分のノード（参加2チーム・結果・勝者）。round0 は seeds、以降は子試合の勝者。
 export interface MatchNode {
@@ -188,6 +192,29 @@ export function computeBracket(
       nodes[`${round}-${m}`] = make(round, m, a, b);
     }
   }
+  // 3位決定戦: 両準決勝（round3）の敗者が対戦
+  const loserOf = (n: MatchNode): TeamRow | null =>
+    n.result ? (n.winner?.code === n.teamA?.code ? n.teamB : n.teamA) : null;
+  const tpA = loserOf(nodes["3-0"]);
+  const tpB = loserOf(nodes["3-1"]);
+  const tpResult = useResults ? KO_RESULTS[THIRD_PLACE_KEY] ?? null : null;
+  let tpWinner: TeamRow | null = null;
+  if (tpResult) {
+    tpWinner =
+      tpA?.code === tpResult.winner
+        ? tpA
+        : tpB?.code === tpResult.winner
+        ? tpB
+        : teamByCode[tpResult.winner] ?? null;
+  }
+  nodes[THIRD_PLACE_KEY] = {
+    round: 3,
+    match: -1,
+    teamA: tpA,
+    teamB: tpB,
+    result: tpResult,
+    winner: tpWinner,
+  };
   return nodes;
 }
 

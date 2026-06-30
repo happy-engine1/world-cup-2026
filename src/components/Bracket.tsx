@@ -6,6 +6,7 @@ import {
   Highlight,
   matchTime,
   THIRD_PLACE_DATE,
+  THIRD_PLACE_KEY,
 } from "@/data/bracket";
 import { teamName, TeamRow } from "@/data/groups";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -208,6 +209,7 @@ function NodeTeam({
   highlight,
   onSelectTeam,
   score,
+  placeholder,
 }: {
   team: TeamRow | null;
   isWinner: boolean;
@@ -216,12 +218,13 @@ function NodeTeam({
   highlight: Highlight;
   onSelectTeam: (code: string) => void;
   score: { goals: string; pen: string | null } | null;
+  placeholder?: string;
 }) {
   const { lang, t } = useI18n();
   if (!team) {
     return (
       <div className="px-1.5 py-1 text-center text-[9px] italic text-white/30">
-        {t.winner}
+        {placeholder ?? t.winner}
       </div>
     );
   }
@@ -467,6 +470,8 @@ export default function Bracket({
 
   const finalNode = nodes["4-0"];
   const champion = finalNode?.winner ?? null;
+  const tpNode = nodes[THIRD_PLACE_KEY];
+  const tpDecided = tpNode?.result != null;
 
   // ラウンド名（分数表記）: 1/16 → 1/8 → 1/4 → 1/2
   const R = ["1/16", "1/8", "1/4", "1/2"];
@@ -549,8 +554,35 @@ export default function Bracket({
               {matchTime("4-0", lang)}
             </div>
           </div>
-          <div className="mt-3 text-[9px] text-white/35">
-            {t.thirdPlace}（{THIRD_PLACE_DATE}）
+          {/* 3位決定戦（両準決勝の敗者） */}
+          <div className="mt-4 w-28 overflow-hidden rounded-md border border-orange-300/40 bg-white/[0.04] text-center">
+            <div className="bg-black/20 px-1 py-0.5 text-[10px] uppercase tracking-widest text-orange-200/80">
+              {t.thirdPlaceTitle}
+            </div>
+            <NodeTeam
+              team={tpNode?.teamA ?? null}
+              isWinner={tpDecided && tpNode?.teamA?.code === tpNode?.winner?.code}
+              decided={tpDecided}
+              side="left"
+              highlight={highlight}
+              onSelectTeam={onSelectTeam}
+              score={sideScore(tpNode, true)}
+              placeholder={t.loser}
+            />
+            <div className="border-t border-white/10" />
+            <NodeTeam
+              team={tpNode?.teamB ?? null}
+              isWinner={tpDecided && tpNode?.teamB?.code === tpNode?.winner?.code}
+              decided={tpDecided}
+              side="left"
+              highlight={highlight}
+              onSelectTeam={onSelectTeam}
+              score={sideScore(tpNode, false)}
+              placeholder={t.loser}
+            />
+            <div className="bg-black/20 px-1 py-0.5 text-[9px] text-orange-200/70">
+              {THIRD_PLACE_DATE}
+            </div>
           </div>
         </div>
       </div>

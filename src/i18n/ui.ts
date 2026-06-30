@@ -45,6 +45,8 @@ export interface UIStrings {
   finalBox: string;
   winnerVs: string;
   thirdPlace: string;
+  thirdPlaceTitle: string; // 3位決定戦ボックスの見出し
+  loser: string; // 敗者プレースホルダ（3位決定戦の枠）
   winner: string;
   provisional: string;
   pens: string; // PK戦の短縮ラベル
@@ -95,6 +97,8 @@ export const UI: Record<Lang, UIStrings> = {
     finalBox: "決勝",
     winnerVs: "勝者 vs 勝者",
     thirdPlace: "3位決定戦あり",
+    thirdPlaceTitle: "3位決定戦",
+    loser: "敗者",
     winner: "勝者",
     provisional: "暫定",
     pens: "PK",
@@ -144,6 +148,8 @@ export const UI: Record<Lang, UIStrings> = {
     finalBox: "Final",
     winnerVs: "Winner vs Winner",
     thirdPlace: "incl. 3rd-place match",
+    thirdPlaceTitle: "3rd Place",
+    loser: "Loser",
     winner: "Winner",
     provisional: "Prov.",
     pens: "pens",
@@ -193,6 +199,8 @@ export const UI: Record<Lang, UIStrings> = {
     finalBox: "决赛",
     winnerVs: "胜者 vs 胜者",
     thirdPlace: "含季军赛",
+    thirdPlaceTitle: "季军赛",
+    loser: "负者",
     winner: "胜者",
     provisional: "暂定",
     pens: "点球",
@@ -242,6 +250,8 @@ export const UI: Record<Lang, UIStrings> = {
     finalBox: "결승",
     winnerVs: "승자 vs 승자",
     thirdPlace: "3·4위전 포함",
+    thirdPlaceTitle: "3·4위전",
+    loser: "패자",
     winner: "승자",
     provisional: "잠정",
     pens: "승부차기",
