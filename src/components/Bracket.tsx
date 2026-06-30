@@ -5,7 +5,6 @@ import {
   MatchNode,
   Highlight,
   matchTime,
-  scoreText,
   THIRD_PLACE_DATE,
 } from "@/data/bracket";
 import { teamName, TeamRow } from "@/data/groups";
@@ -40,6 +39,51 @@ function Slot({ children }: { children: React.ReactNode }) {
   return <div className="flex flex-1 items-center">{children}</div>;
 }
 
+// 各チームの「自分の得点（とPK）」を取り出す。score/pens は "teamA-teamB" 並び。
+function sideScore(
+  node: MatchNode | undefined,
+  isA: boolean
+): { goals: string; pen: string | null } | null {
+  if (!node?.result) return null;
+  const g = node.result.score.split("-");
+  const p = node.result.pens ? node.result.pens.split("-") : null;
+  return {
+    goals: (isA ? g[0] : g[1]) ?? "",
+    pen: p ? (isA ? p[0] : p[1]) ?? null : null,
+  };
+}
+
+// 1チーム分の得点セル。中央（コネクタ）側に得点、その外側に (PK) を置く。
+function ScoreCells({
+  score,
+  side,
+  isWinner,
+}: {
+  score: { goals: string; pen: string | null } | null;
+  side: Side;
+  isWinner: boolean;
+}) {
+  if (!score) return null;
+  return (
+    <span
+      className={`flex shrink-0 items-center gap-1 tabular-nums ${
+        side === "right" ? "flex-row-reverse" : ""
+      }`}
+    >
+      {score.pen != null && (
+        <span className="text-[8px] text-amber-200/70">({score.pen})</span>
+      )}
+      <span
+        className={`text-[11px] font-bold ${
+          isWinner ? "text-amber-200" : "text-white/70"
+        }`}
+      >
+        {score.goals}
+      </span>
+    </span>
+  );
+}
+
 // 試合ボックスのヘッダー（結果があればスコア、無ければ試合時刻）
 function MatchHeader({
   mkey,
@@ -48,23 +92,16 @@ function MatchHeader({
   mkey: string;
   node: MatchNode | undefined;
 }) {
-  const { lang, t } = useI18n();
+  const { lang } = useI18n();
   const decided = node?.result != null;
   return (
     <div
-      className={`border-b border-white/10 px-1 text-center leading-tight ${
-        decided ? "bg-amber-400/15" : "bg-black/25"
+      className={`border-b border-white/10 px-1 text-center text-[8px] tracking-wide ${
+        decided ? "bg-amber-400/15 text-amber-200/70" : "bg-black/25 text-white/45"
       }`}
     >
-      {/* 日付・時刻は試合後も残す */}
-      <div className="text-[8px] tracking-wide text-white/45">
-        {matchTime(mkey, lang)}
-      </div>
-      {decided && (
-        <div className="text-[8px] font-semibold text-amber-200/90">
-          {scoreText(node!, t.pens)}
-        </div>
-      )}
+      {/* 日付・時刻は試合後も残す（スコアは各チーム行に表示） */}
+      {matchTime(mkey, lang)}
     </div>
   );
 }
@@ -78,6 +115,7 @@ function SeedLine({
   side,
   decided,
   isWinner,
+  score,
 }: {
   slot: SeedSlot;
   highlight: Highlight;
@@ -85,6 +123,7 @@ function SeedLine({
   side: Side;
   decided: boolean;
   isWinner: boolean;
+  score: { goals: string; pen: string | null } | null;
 }) {
   const { lang, t } = useI18n();
   const isSel = highlight.selected === slot.team.code;
@@ -149,14 +188,12 @@ function SeedLine({
         >
           {teamName(slot.team.code, lang)}
         </span>
-        {isWinner && (
-          <span className="shrink-0 text-[9px] leading-none text-amber-300">✓</span>
-        )}
         {!slot.confirmed && !decided && (
           <span className="shrink-0 rounded-sm bg-sky-500/20 px-1 text-[8px] not-italic leading-tight text-sky-300">
             {t.provisional}
           </span>
         )}
+        <ScoreCells score={score} side={side} isWinner={isWinner} />
       </span>
     </button>
   );
@@ -170,6 +207,7 @@ function NodeTeam({
   side,
   highlight,
   onSelectTeam,
+  score,
 }: {
   team: TeamRow | null;
   isWinner: boolean;
@@ -177,6 +215,7 @@ function NodeTeam({
   side: Side;
   highlight: Highlight;
   onSelectTeam: (code: string) => void;
+  score: { goals: string; pen: string | null } | null;
 }) {
   const { lang, t } = useI18n();
   if (!team) {
@@ -219,9 +258,7 @@ function NodeTeam({
       >
         {teamName(team.code, lang)}
       </span>
-      {isWinner && (
-        <span className="shrink-0 text-[9px] leading-none text-amber-300">✓</span>
-      )}
+      <ScoreCells score={score} side={side} isWinner={isWinner} />
     </button>
   );
 }
@@ -271,6 +308,7 @@ function R32Column({
                   side={side}
                   decided={decided}
                   isWinner={decided && seeds[m * 2].team.code === wc}
+                  score={sideScore(node, true)}
                 />
                 <div className="border-t border-white/10" />
                 <SeedLine
@@ -280,6 +318,7 @@ function R32Column({
                   side={side}
                   decided={decided}
                   isWinner={decided && seeds[m * 2 + 1].team.code === wc}
+                  score={sideScore(node, false)}
                 />
               </div>
             </Slot>
@@ -335,6 +374,7 @@ function InternalColumn({
                   side={side}
                   highlight={highlight}
                   onSelectTeam={onSelectTeam}
+                  score={sideScore(node, true)}
                 />
                 <div className="border-t border-white/10" />
                 <NodeTeam
@@ -344,6 +384,7 @@ function InternalColumn({
                   side={side}
                   highlight={highlight}
                   onSelectTeam={onSelectTeam}
+                  score={sideScore(node, false)}
                 />
               </div>
             </Slot>
@@ -488,6 +529,7 @@ export default function Bracket({
                   side="left"
                   highlight={highlight}
                   onSelectTeam={onSelectTeam}
+                  score={sideScore(finalNode, true)}
                 />
                 <div className="border-t border-white/10" />
                 <NodeTeam
@@ -497,18 +539,14 @@ export default function Bracket({
                   side="left"
                   highlight={highlight}
                   onSelectTeam={onSelectTeam}
+                  score={sideScore(finalNode, false)}
                 />
               </>
             ) : (
               <div className="px-1 py-1.5 text-[9px] italic text-white/40">{t.winnerVs}</div>
             )}
             <div className="bg-black/20 px-1 py-0.5 text-[9px] text-amber-200/80">
-              <span>{matchTime("4-0", lang)}</span>
-              {finalNode?.result && (
-                <span className="ml-1 font-semibold">
-                  {scoreText(finalNode, t.pens)}
-                </span>
-              )}
+              {matchTime("4-0", lang)}
             </div>
           </div>
           <div className="mt-3 text-[9px] text-white/35">
