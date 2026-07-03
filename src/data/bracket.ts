@@ -136,6 +136,8 @@ export const KO_RESULTS: Record<string, KOResult> = {
   "0-1": { winner: "fr", score: "3-0" }, // フランス(I1) 3-0 スウェーデン(F3)
   "0-2": { winner: "ca", score: "0-1" }, // 南アフリカ(A2) 0-1 カナダ(B2)
   "0-3": { winner: "ma", score: "1-1", pens: "2-3" }, // オランダ(F1) 1-1 モロッコ(C2) PK2-3
+  "0-4": { winner: "pt", score: "2-1" }, // ポルトガル(K2) 2-1 クロアチア(L2)
+  "0-5": { winner: "es", score: "3-0" }, // スペイン(H1) 3-0 オーストリア(J2)
   "0-6": { winner: "us", score: "2-0" }, // アメリカ(D1) 2-0 ボスニア(B3)
   "0-7": { winner: "be", score: "3-2" }, // ベルギー(G1) 3-2 セネガル(I3)
   "0-8": { winner: "br", score: "2-1" }, // ブラジル(C1) 2-1 日本(F2)
