@@ -144,6 +144,10 @@ export const KO_RESULTS: Record<string, KOResult> = {
   "0-9": { winner: "no", score: "1-2" }, // コートジボワール(E2) 1-2 ノルウェー(I2)
   "0-10": { winner: "mx", score: "2-0" }, // メキシコ(A1) 2-0 エクアドル(E3)
   "0-11": { winner: "gb-eng", score: "2-1" }, // イングランド(L1) 2-1 コンゴ民主(K3)
+  "0-12": { winner: "ar", score: "3-2" }, // アルゼンチン(J1) 3-2 カーボベルデ(H2)
+  "0-13": { winner: "eg", score: "1-1", pens: "2-4" }, // オーストラリア(D2) 1-1 エジプト(G2) PK2-4
+  "0-14": { winner: "ch", score: "2-0" }, // スイス(B1) 2-0 アルジェリア(J3)
+  "0-15": { winner: "co", score: "1-0" }, // コロンビア(K1) 1-0 ガーナ(L3)
   // 3位決定戦（両準決勝の敗者）。キーは "tp"。例: "tp": { winner: "...", score: "x-y" }
 };
 
