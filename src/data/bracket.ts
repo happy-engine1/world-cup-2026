@@ -155,6 +155,8 @@ export const KO_RESULTS: Record<string, KOResult> = {
   "1-3": { winner: "be", score: "1-4" }, // アメリカ 1-4 ベルギー
   "1-4": { winner: "no", score: "1-2" }, // ブラジル 1-2 ノルウェー
   "1-5": { winner: "gb-eng", score: "2-3" }, // メキシコ 2-3 イングランド
+  "1-6": { winner: "ar", score: "3-2" }, // アルゼンチン 3-2 エジプト
+  // 1-7 スイス vs コロンビアは 2026-07-08 時点で延長戦中（未確定）
   // 3位決定戦（両準決勝の敗者）。キーは "tp"。例: "tp": { winner: "...", score: "x-y" }
 };
 
