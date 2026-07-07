@@ -151,7 +151,10 @@ export const KO_RESULTS: Record<string, KOResult> = {
   // ===== ベスト16（round1）=====
   "1-0": { winner: "fr", score: "0-1" }, // パラグアイ 0-1 フランス
   "1-1": { winner: "ma", score: "0-3" }, // カナダ 0-3 モロッコ
+  "1-2": { winner: "es", score: "0-1" }, // ポルトガル 0-1 スペイン
+  "1-3": { winner: "be", score: "1-4" }, // アメリカ 1-4 ベルギー
   "1-4": { winner: "no", score: "1-2" }, // ブラジル 1-2 ノルウェー
+  "1-5": { winner: "gb-eng", score: "2-3" }, // メキシコ 2-3 イングランド
   // 3位決定戦（両準決勝の敗者）。キーは "tp"。例: "tp": { winner: "...", score: "x-y" }
 };
 
