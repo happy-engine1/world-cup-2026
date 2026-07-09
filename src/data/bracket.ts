@@ -157,6 +157,8 @@ export const KO_RESULTS: Record<string, KOResult> = {
   "1-5": { winner: "gb-eng", score: "2-3" }, // メキシコ 2-3 イングランド
   "1-6": { winner: "ar", score: "3-2" }, // アルゼンチン 3-2 エジプト
   "1-7": { winner: "ch", score: "0-0", pens: "4-3" }, // スイス 0-0 コロンビア PK4-3
+  // ===== 準々決勝（round2）=====
+  "2-0": { winner: "fr", score: "2-0" }, // フランス 2-0 モロッコ
   // 3位決定戦（両準決勝の敗者）。キーは "tp"。例: "tp": { winner: "...", score: "x-y" }
 };
 
