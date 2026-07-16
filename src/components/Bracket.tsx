@@ -5,7 +5,6 @@ import {
   MatchNode,
   Highlight,
   matchTime,
-  THIRD_PLACE_DATE,
   THIRD_PLACE_KEY,
 } from "@/data/bracket";
 import { teamName, TeamRow } from "@/data/groups";
@@ -581,7 +580,7 @@ export default function Bracket({
               placeholder={t.loser}
             />
             <div className="bg-black/20 px-1 py-0.5 text-[9px] text-orange-200/70">
-              {THIRD_PLACE_DATE}
+              {matchTime(THIRD_PLACE_KEY, lang)}
             </div>
           </div>
         </div>
