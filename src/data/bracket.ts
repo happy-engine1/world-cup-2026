@@ -165,6 +165,8 @@ export const KO_RESULTS: Record<string, KOResult> = {
   // ===== 準決勝（round3）=====
   "3-0": { winner: "es", score: "0-2" }, // フランス 0-2 スペイン
   "3-1": { winner: "ar", score: "1-2" }, // イングランド 1-2 アルゼンチン
+  // ===== 決勝（round4）=====
+  "4-0": { winner: "es", score: "1-0" }, // スペイン 1-0 アルゼンチン（スペイン優勝🏆）
   // ===== 3位決定戦（両準決勝の敗者）=====
   "tp": { winner: "gb-eng", score: "4-6" }, // フランス 4-6 イングランド
 };
